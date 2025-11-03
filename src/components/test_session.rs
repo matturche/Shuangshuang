@@ -3,14 +3,10 @@ use leptos::leptos_dom::logging::console_log;
 use leptos::{html, prelude::*};
 use urlencoding::encode;
 
-use crate::exercise::{ExerciseSummary, InputStyle};
-use crate::utils::get_tones_from_pinyin;
+use crate::exercise::{ExerciseSummary, HanziPair, InputStyle};
 use crate::{
     exercise::{ExerciseParams, ExerciseType, ShuangElement},
-    utils::{
-        format_url, get_pinyin_from_chinese_word, get_pronounced_pinyin,
-        get_random_hanzi_pairs_idxs, get_tones_only_from_pronounced_pinyin,
-    },
+    utils::{format_url, get_random_hanzi_pairs_idxs, get_tones_only_from_pronounced_pinyin},
 };
 
 const DEFAULT_LISTENINGS_TRIES: u32 = 3;
@@ -18,12 +14,12 @@ const DEFAULT_LISTENINGS_TRIES: u32 = 3;
 /// A component handling the exercise session for ShuangShuang
 #[component]
 pub fn TestSession(
-    hanzi_pairs: ReadSignal<Vec<String>>,
+    hanzi_pairs: ReadSignal<Vec<HanziPair>>,
     exercise_params: ReadSignal<Option<ExerciseParams>>,
     set_exercise_finished: WriteSignal<bool>,
 ) -> impl IntoView {
     let (current_random_idx, set_current_random_idx) = signal(0);
-    let (current_hanzi_pair, set_current_hanzi_pair) = signal("".to_string());
+    let (current_hanzi_pair, set_current_hanzi_pair) = signal(HanziPair::default());
     let (user_answer, set_user_answer) = signal("".to_string());
     let (random_idxs, set_random_idxs) = signal(vec![]);
     let (shuang_elements, set_shuang_elements) = signal::<Vec<ShuangElement>>(vec![]);
@@ -40,7 +36,10 @@ pub fn TestSession(
         let c_r_idx: usize = current_random_idx();
         let c_idx: usize = random_idxs.read()[c_r_idx];
         set_current_hanzi_pair(hanzi_pairs.read()[c_idx].clone());
-        set_audio_url(format_url(&current_hanzi_pair(), params().audio_quality));
+        set_audio_url(format_url(
+            &current_hanzi_pair().characters,
+            params().audio_quality,
+        ));
     };
     let play_hanzi_pair_audio = move |set_new_audio: bool| {
         let audio = audio_element
@@ -84,11 +83,8 @@ pub fn TestSession(
                 second_tone_value.set("".to_string());
             }
         }
-        let pronounced_pinyin = get_pronounced_pinyin(
-            &current_hanzi_pair(),
-            &get_pinyin_from_chinese_word(&current_hanzi_pair()).unwrap(),
-        );
-        let tones = get_tones_from_pinyin(&pronounced_pinyin);
+        let hanzi_pair = current_hanzi_pair();
+        let pronounced_pinyin = hanzi_pair.pronounced_pinyin.clone();
         let expected_answer = match params().exercise_type {
             ExerciseType::ToneOnly => get_tones_only_from_pronounced_pinyin(&pronounced_pinyin),
             ExerciseType::NoTonePinyin => pronounced_pinyin.replace(char::is_numeric, ""),
@@ -96,11 +92,9 @@ pub fn TestSession(
         };
         set_shuang_elements.update(|v| {
             v.push(ShuangElement {
-                characters: current_hanzi_pair(),
+                hanzi_pair,
                 is_correct: answer == expected_answer,
-                pinyin: pronounced_pinyin,
                 user_answer: answer,
-                tone_combination: (tones[0], tones[1]),
             })
         });
         if current_random_idx() < random_idxs.read().len() - 1 {
@@ -133,18 +127,16 @@ pub fn TestSession(
                             {format!("{:.2}%", exercise_summary.get_correct_percentage())}
                         </div>
                         <div>
-                            {if exercise_summary.tone_combination_mistakes.len() > 0 {
+                            {if exercise_summary.tone_pair_mistakes.len() > 0 {
 
                                 view! {
                                     "Incorrect tone combinations: "
                                     {exercise_summary
-                                        .tone_combination_mistakes
+                                        .tone_pair_mistakes
                                         .iter()
-                                        .map(|(tone_combination, mistake_count)| {
+                                        .map(|(tone_pair, mistake_count)| {
                                             view! {
-                                                <li>
-                                                    {format!("{:?}: {mistake_count}", tone_combination)}
-                                                </li>
+                                                <li>{format!("{:?}: {mistake_count}", tone_pair)}</li>
                                             }
                                         })
                                         .collect_view()}
@@ -162,7 +154,7 @@ pub fn TestSession(
                                     if !elem.is_correct {
                                         let elem_ref = format!(
                                             "https://www.mdbg.net/chinese/dictionary?wdqb={}",
-                                            encode(&elem.characters),
+                                            encode(&elem.hanzi_pair.characters),
                                         );
                                         mistakes_views
                                             .push(
@@ -170,15 +162,18 @@ pub fn TestSession(
                                                 view! {
                                                     <div>
                                                         <div>
-                                                            <a href=elem_ref>{elem.characters.clone()}</a>
+                                                            <a href=elem_ref>{elem.hanzi_pair.characters.clone()}</a>
                                                         </div>
-                                                        <div>"Expected pinyin answer: "{elem.pinyin.clone()}</div>
+                                                        <div>
+                                                            "Expected pinyin answer: "
+                                                            {elem.hanzi_pair.pronounced_pinyin.clone()}
+                                                        </div>
                                                         <div>
                                                             "Expected tone answer: "
                                                             {format!(
                                                                 "{}{}",
-                                                                elem.tone_combination.0.clone().to_string(),
-                                                                elem.tone_combination.1.clone().to_string(),
+                                                                elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
+                                                                elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
                                                             )}
                                                         </div>
                                                         <div>"User answer: "{elem.user_answer.clone()}</div>

@@ -176,36 +176,57 @@ impl Default for ExerciseParams {
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ShuangElement {
+    pub hanzi_pair: HanziPair,
+    pub user_answer: String,
+    pub is_correct: bool,
+}
+
+#[derive(Clone, PartialEq, Eq, Debug)]
+pub struct HanziPair {
     pub characters: String,
     pub pinyin: String,
-    pub user_answer: String,
-    pub tone_combination: (Tone, Tone),
-    pub is_correct: bool,
+    pub pronounced_pinyin: String,
+    pub tone_pair: (Tone, Tone),
+    pub pronounced_tone_pair: (Tone, Tone),
+}
+
+impl Default for HanziPair {
+    fn default() -> Self {
+        Self {
+            characters: String::new(),
+            pinyin: String::new(),
+            pronounced_pinyin: String::new(),
+            tone_pair: (Tone::NeutralTone, Tone::NeutralTone),
+            pronounced_tone_pair: (Tone::NeutralTone, Tone::NeutralTone),
+        }
+    }
 }
 
 #[derive(Clone, PartialEq, Eq, Debug)]
 pub struct ExerciseSummary {
     pub correct_answers: u32,
     pub test_elements: Vec<ShuangElement>,
-    pub tone_combination_mistakes: HashMap<(Tone, Tone), u32>,
+    pub tone_pair_mistakes: HashMap<(Tone, Tone), u32>,
 }
 
 impl From<Vec<ShuangElement>> for ExerciseSummary {
     fn from(value: Vec<ShuangElement>) -> Self {
-        let mut tone_combination_mistakes: HashMap<(Tone, Tone), u32> = HashMap::new();
+        let mut tone_pair_mistakes: HashMap<(Tone, Tone), u32> = HashMap::new();
         for elem in value.iter() {
             if !elem.is_correct {
-                if let Some(mistakes) = tone_combination_mistakes.get_mut(&elem.tone_combination) {
+                if let Some(mistakes) =
+                    tone_pair_mistakes.get_mut(&elem.hanzi_pair.pronounced_tone_pair)
+                {
                     *mistakes += 1;
                 } else {
-                    tone_combination_mistakes.insert(elem.tone_combination.clone(), 1);
+                    tone_pair_mistakes.insert(elem.hanzi_pair.pronounced_tone_pair.clone(), 1);
                 }
             }
         }
         Self {
             correct_answers: value.iter().map(|x| x.is_correct as u32).sum(),
             test_elements: value,
-            tone_combination_mistakes,
+            tone_pair_mistakes,
         }
     }
 }

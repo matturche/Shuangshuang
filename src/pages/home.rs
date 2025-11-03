@@ -1,6 +1,7 @@
 use crate::api::fetch_hanzi_pairs;
 use crate::components::test_form::TestForm;
 use crate::components::test_session::TestSession;
+use crate::exercise::HanziPair;
 use leptos::prelude::*;
 
 /// Default Home Page
@@ -9,7 +10,7 @@ pub fn Home() -> impl IntoView {
     let (exercise_params, set_exercise_params) = signal(None);
     let (exercise_finished, set_exercise_finished) = signal(false);
     let fetched_hanzi_pairs = LocalResource::new(async move || fetch_hanzi_pairs().await);
-    let (hanzi_pairs, set_hanzi_pairs) = signal::<Vec<String>>(vec![]);
+    let (hanzi_pairs, set_hanzi_pairs) = signal::<Vec<HanziPair>>(vec![]);
 
     view! {
         <ErrorBoundary fallback=|errors| {

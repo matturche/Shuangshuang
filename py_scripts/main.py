@@ -1,7 +1,10 @@
 import unicodedata
+import re
+from hanzipy.dictionary import HanziDictionary
 
 
 def clean_file_for_shuangshuang(in_path_1: str, in_path_2: str, out_path: str):
+    dictionary = HanziDictionary()
     if out_path.endswith(".txt"):
         with open(out_path, "w", encoding="utf-8") as out_f:
             missing_record_set = set()
@@ -18,7 +21,19 @@ def clean_file_for_shuangshuang(in_path_1: str, in_path_2: str, out_path: str):
                             and count_cjk_chars(line) == 2
                             and line not in missing_record_set
                         ):
-                            out_f.write(line)
+                            line = line.rstrip()
+                            dict_search = dictionary.definition_lookup(line)
+                            first_def = dict_search[0]
+                            pinyin: str = first_def[
+                                "pinyin"
+                            ].lower().replace(' ', '').replace('u:', 'v')
+                            tones: str = re.sub(r'[a-zA-Z]', r'', pinyin)
+                            if len(tones) == 1:
+                                # Adding possibly missing neutral tone
+                                tones = tones + '5'
+                            # NOTE: remove trailing 5th neutral tone in pinyin
+                            pinyin = pinyin.replace('5', '')
+                            out_f.write(f"{line} {pinyin} {tones}\n")
 
 
 def character_is_hanzi(character: str) -> bool:

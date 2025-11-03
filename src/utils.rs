@@ -5,7 +5,7 @@ use pinyin::ToPinyin;
 use rand::Rng;
 use thiserror::Error;
 
-use crate::exercise::{AudioQuality, Tone};
+use crate::exercise::{AudioQuality, HanziPair, Tone};
 
 #[derive(Error, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
@@ -25,7 +25,7 @@ pub fn format_url(chinese_word: &str, audio_quality: AudioQuality) -> String {
     )
 }
 
-pub fn get_random_hanzi_pairs_idxs(nb_elements: u32, hanzi_pairs: &Vec<String>) -> Vec<usize> {
+pub fn get_random_hanzi_pairs_idxs(nb_elements: u32, hanzi_pairs: &Vec<HanziPair>) -> Vec<usize> {
     let mut idxs: Vec<usize> = vec![];
     let mut used_idxs: HashSet<usize> = HashSet::new();
     let mut rng = rand::rng();
@@ -73,19 +73,18 @@ pub fn get_pinyin_from_chinese_word(word: &str) -> Option<String> {
     }
 }
 
-pub fn get_pronounced_pinyin(word: &str, pinyin: &str) -> String {
-    let tones = get_tones_from_pinyin(pinyin);
+pub fn get_pronounced_pinyin(word: &str, pinyin: &str, tone_pair: &(Tone, Tone)) -> String {
     let mut pronounced_pinyin = String::from(pinyin);
     // Bu becomes second tone with fourth tone rule
     if bu_is_first_hanzi(word) {
-        if let Tone::Tone4 = tones[1] {
+        if let Tone::Tone4 = tone_pair.1 {
             pronounced_pinyin =
                 pinyin.replacen(&Tone::Tone4.to_string(), &Tone::Tone2.to_string(), 1);
         }
     }
     if yi_is_first_hanzi(word) {
         // Yi becomes second tone with fourth tone rule
-        if let Tone::Tone4 = tones[1] {
+        if let Tone::Tone4 = tone_pair.1 {
             pronounced_pinyin = pinyin.replace(&Tone::Tone1.to_string(), &Tone::Tone2.to_string());
         } else {
             // Yi becomes fourth tone with other tones rule
@@ -95,11 +94,10 @@ pub fn get_pronounced_pinyin(word: &str, pinyin: &str) -> String {
         }
     }
     // Double 3 tone change rule
-    if tones[0] == Tone::Tone3 && tones[1] == Tone::Tone3 {
+    if tone_pair.0 == Tone::Tone3 && tone_pair.1 == Tone::Tone3 {
         pronounced_pinyin = pinyin.replacen(&Tone::Tone3.to_string(), &Tone::Tone2.to_string(), 1);
     }
-    // NOTE: Finally replace any "nü" with "nv" for ease of writing
-    pronounced_pinyin.replace("ü", "v")
+    pronounced_pinyin
 }
 
 pub fn bu_is_first_hanzi(word: &str) -> bool {
@@ -157,9 +155,13 @@ mod tests {
     fn test_no_tone_change_works() {
         let chinese_word = "严肃";
         let expected_pinyin = "yan2su4";
+        let tone_pair = (Tone::Tone2, Tone::Tone4);
         let normal_pinyin = get_pinyin_from_chinese_word(chinese_word);
-        let result_pinyin =
-            get_pronounced_pinyin(chinese_word, &normal_pinyin.expect("No pinyin detected"));
+        let result_pinyin = get_pronounced_pinyin(
+            chinese_word,
+            &normal_pinyin.expect("No pinyin detected"),
+            &tone_pair,
+        );
         assert_eq!(expected_pinyin, &result_pinyin);
     }
 
@@ -167,9 +169,13 @@ mod tests {
     fn test_third_tone_change_works() {
         let chinese_word = "你好";
         let expected_pinyin = "ni2hao3";
+        let tone_pair = (Tone::Tone3, Tone::Tone3);
         let normal_pinyin = get_pinyin_from_chinese_word(chinese_word);
-        let result_pinyin =
-            get_pronounced_pinyin(chinese_word, &normal_pinyin.expect("No pinyin detected"));
+        let result_pinyin = get_pronounced_pinyin(
+            chinese_word,
+            &normal_pinyin.expect("No pinyin detected"),
+            &tone_pair,
+        );
         assert_eq!(expected_pinyin, &result_pinyin);
     }
 
@@ -177,9 +183,13 @@ mod tests {
     fn test_yi_1_2_tone_change_works() {
         let chinese_word = "一会";
         let expected_pinyin = "yi2hui4";
+        let tone_pair = (Tone::Tone1, Tone::Tone4);
         let normal_pinyin = get_pinyin_from_chinese_word(chinese_word);
-        let result_pinyin =
-            get_pronounced_pinyin(chinese_word, &normal_pinyin.expect("No pinyin detected"));
+        let result_pinyin = get_pronounced_pinyin(
+            chinese_word,
+            &normal_pinyin.expect("No pinyin detected"),
+            &tone_pair,
+        );
         assert_eq!(expected_pinyin, &result_pinyin);
     }
 
@@ -187,9 +197,13 @@ mod tests {
     fn test_yi_1_4_tone_change_works() {
         let chinese_word = "一点";
         let expected_pinyin = "yi4dian3";
+        let tone_pair = (Tone::Tone1, Tone::Tone3);
         let normal_pinyin = get_pinyin_from_chinese_word(chinese_word);
-        let result_pinyin =
-            get_pronounced_pinyin(chinese_word, &normal_pinyin.expect("No pinyin detected"));
+        let result_pinyin = get_pronounced_pinyin(
+            chinese_word,
+            &normal_pinyin.expect("No pinyin detected"),
+            &tone_pair,
+        );
         assert_eq!(expected_pinyin, &result_pinyin);
     }
 
@@ -197,9 +211,13 @@ mod tests {
     fn test_bu_4_2_tone_change_works() {
         let chinese_word = "不要";
         let expected_pinyin = "bu2yao4";
+        let tone_pair = (Tone::Tone4, Tone::Tone4);
         let normal_pinyin = get_pinyin_from_chinese_word(chinese_word);
-        let result_pinyin =
-            get_pronounced_pinyin(chinese_word, &normal_pinyin.expect("No pinyin detected"));
+        let result_pinyin = get_pronounced_pinyin(
+            chinese_word,
+            &normal_pinyin.expect("No pinyin detected"),
+            &tone_pair,
+        );
         assert_eq!(expected_pinyin, &result_pinyin);
     }
 }
