@@ -22,7 +22,7 @@ pub fn App() -> impl IntoView {
         <Html attr:lang="en" attr:dir="ltr" attr:data-theme="light" />
 
         // sets the document title
-        <Title text="爽双 Shuangshuang" />
+        <Title text="Shuangshuang" />
 
         // injects metadata in the <head> of the page
         <Meta charset="UTF-8" />

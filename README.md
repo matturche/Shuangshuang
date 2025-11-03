@@ -65,3 +65,4 @@ it will open your app in your default browser at `http://localhost:3000`.
 The following hanzi pairs' pinyin was manualy altered to match the audio recording:
 
 - 好处: from "hao3chu3" to "hao3chu"
+- 因为: from "yin1wei4" to "yin1wei2"
