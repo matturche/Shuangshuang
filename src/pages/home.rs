@@ -35,7 +35,7 @@ pub fn Home() -> impl IntoView {
             <Suspense fallback=move || {
                 view! { <p>"Loading..."</p> }
             }>
-                <div class="container">
+                <div class="bg-base-200 h-screen">
                     {move || {
                         Suspend::new(async move {
                             set_hanzi_pairs(fetched_hanzi_pairs.await);
@@ -53,7 +53,9 @@ pub fn Home() -> impl IntoView {
                                 .into_any()
                         } else {
                             view! {
-                                <h1>"Welcome to Shuangshuang 爽双!"</h1>
+                                <div class="flex justify-center py-4">
+                                    <h1 class="text-2xl">"Welcome to Shuangshuang 爽双!"</h1>
+                                </div>
 
                                 <TestForm set_exercise_params />
                             }

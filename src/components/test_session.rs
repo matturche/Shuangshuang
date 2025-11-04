@@ -120,170 +120,241 @@ pub fn TestSession(
             if show_results() {
                 let exercise_summary = ExerciseSummary::from(shuang_elements());
                 view! {
-                    <div>
-                        <div>"Correct answers: " {exercise_summary.correct_answers}</div>
-                        <div>
-                            "Percentage correct: "
-                            {format!("{:.2}%", exercise_summary.get_correct_percentage())}
-                        </div>
-                        <div>
-                            {if exercise_summary.tone_pair_mistakes.len() > 0 {
+                    <div class="flex justify-center">
+                        <div class="flex flex-col">
+                            <div class="card h-full md:h-160 md:mt-10 bg-base-100 card-border border-base-300 card-md overflow-auto px-10">
+                                <div class="flex justify-center text-success">"Correct answers: " {exercise_summary.correct_answers}</div>
+                                <div class="flex justify-center text-success">
+                                    "Percentage correct: "
+                                    {format!("{:.2}%", exercise_summary.get_correct_percentage())}
+                                </div>
+                                <div class="flex flex-col justify-center text-center text-error">
+                                    {if exercise_summary.tone_pair_mistakes.len() > 0 {
 
-                                view! {
-                                    "Incorrect tone combinations: "
-                                    {exercise_summary
-                                        .tone_pair_mistakes
-                                        .iter()
-                                        .map(|(tone_pair, mistake_count)| {
-                                            view! {
-                                                <li>{format!("{:?}: {mistake_count}", tone_pair)}</li>
+                                        view! {
+                                            "Incorrect tone combinations: "
+                                            {exercise_summary
+                                                .tone_pair_mistakes
+                                                .iter()
+                                                .map(|(tone_pair, mistake_count)| {
+                                                    view! {
+                                                        <li>{format!("{:?}: {mistake_count}", tone_pair)}</li>
+                                                    }
+                                                })
+                                                .collect_view()}
+                                        }
+                                            .into_any()
+                                    } else {
+                                        view! {}.into_any()
+                                    }}
+
+                                </div>
+                                <div>
+                                    {
+                                        let mut mistakes_views: Vec<AnyView> = vec![];
+                                        for elem in shuang_elements.read().iter() {
+                                            if !elem.is_correct {
+                                                let elem_ref = format!(
+                                                    "https://www.mdbg.net/chinese/dictionary?wdqb={}",
+                                                    encode(&elem.hanzi_pair.characters),
+                                                );
+                                                mistakes_views
+                                                    .push(
+
+                                                        view! {
+                                                            <div class="flex flex-col justify-center">
+                                                                <div>
+                                                                    <a class="link link-info" href=elem_ref>{elem.hanzi_pair.characters.clone()}</a>
+                                                                </div>
+                                                                <div>
+                                                                    "Expected pinyin answer: "
+                                                                    {elem.hanzi_pair.pronounced_pinyin.clone()}
+                                                                </div>
+                                                                <div>
+                                                                    "Expected tone answer: "
+                                                                    {format!(
+                                                                        "{}{}",
+                                                                        elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
+                                                                        elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
+                                                                    )}
+                                                                </div>
+                                                                <div>"User answer: "{elem.user_answer.clone()}</div>
+                                                            </div>
+                                                        }
+                                                            .into_any(),
+                                                    );
                                             }
-                                        })
-                                        .collect_view()}
-                                }
-                                    .into_any()
-                            } else {
-                                view! {}.into_any()
-                            }}
-
-                        </div>
-                        <div>
-                            {
-                                let mut mistakes_views: Vec<AnyView> = vec![];
-                                for elem in shuang_elements.read().iter() {
-                                    if !elem.is_correct {
-                                        let elem_ref = format!(
-                                            "https://www.mdbg.net/chinese/dictionary?wdqb={}",
-                                            encode(&elem.hanzi_pair.characters),
-                                        );
-                                        mistakes_views
-                                            .push(
-
-                                                view! {
-                                                    <div>
-                                                        <div>
-                                                            <a href=elem_ref>{elem.hanzi_pair.characters.clone()}</a>
-                                                        </div>
-                                                        <div>
-                                                            "Expected pinyin answer: "
-                                                            {elem.hanzi_pair.pronounced_pinyin.clone()}
-                                                        </div>
-                                                        <div>
-                                                            "Expected tone answer: "
-                                                            {format!(
-                                                                "{}{}",
-                                                                elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
-                                                                elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
-                                                            )}
-                                                        </div>
-                                                        <div>"User answer: "{elem.user_answer.clone()}</div>
-                                                    </div>
-                                                }
-                                                    .into_any(),
-                                            );
+                                        }
+                                        mistakes_views.collect_view()
                                     }
-                                }
-                                mistakes_views.collect_view()
-                            }
+                                </div>
+                            </div>
+                            <div class="flex fit justify-center py-2">
+                                <button
+                                    class="btn rounded-md btn-secondary text-white"
+                                    on:click=move |_| { set_exercise_finished(true) }
+                                >
+                                    "Go back to menu"
+                                </button>
+                            </div>
                         </div>
-                        <button on:click=move |_| {
-                            set_exercise_finished(true)
-                        }>"Go back to menu"</button>
                     </div>
                 }
                     .into_any()
             } else {
                 view! {
-                    <div>
-                        <div>
-                            <form on:submit=move |ev: SubmitEvent| {
-                                ev.prevent_default();
-                                on_submit_answer()
-                            }>
-                                {if let InputStyle::Keyboard = params().input_style {
-                                    view! {
-                                        <label>
-                                            {input_label}
-                                            <input
-                                                required
-                                                type="text"
-                                                node_ref=user_answer_element
-                                                value=user_answer
-                                            />
-                                        </label>
-                                        <input type="submit" value=">" />
+                    <div class="flex h-full md:h-100 justify-center place-items-center">
+                        <div class="flex flex-col justify-center">
+                            <div>
+                                <a class="badge badge-accent text-white font-semibold">
+                                    {random_idxs.read().len() - current_random_idx()}
+                                </a>
+                                " Remaining pairs"
+                            </div>
+                            <div class="pt-2">
+                                <form on:submit=move |ev: SubmitEvent| {
+                                    ev.prevent_default();
+                                    on_submit_answer()
+                                }>
+                                    {if let InputStyle::Keyboard = params().input_style {
+                                        let input_placeholder: &str;
+                                        let input_help: &str;
+                                        match params().exercise_type {
+                                            ExerciseType::Pinyin => {
+                                                input_help = "e.g. if you hear 你好, type ni2hao3";
+                                                input_placeholder = "Type full pinyin";
+                                            }
+                                            ExerciseType::ToneOnly => {
+                                                input_help = "e.g. if you hear 你好, type 23";
+                                                input_placeholder = "Type tone numbers";
+                                            }
+                                            ExerciseType::NoTonePinyin => {
+                                                input_help = "e.g. if you hear 你好, type nihao";
+                                                input_placeholder = "Type pinyin without tone";
+                                            }
+                                        }
+                                        view! {
+                                            <fieldset class="fieldset">
+                                                <legend class="fieldset-legend">{input_label}</legend>
+                                                <div class="flex fit">
+                                                    <input
+                                                        class="input input-neutral rounded-md"
+                                                        required
+                                                        type="text"
+                                                        node_ref=user_answer_element
+                                                        value=user_answer
+                                                        placeholder=input_placeholder
+                                                    />
+                                                    <input
+                                                        class="btn btn-primary text-white rounded-sm"
+                                                        type="submit"
+                                                        value=">"
+                                                    />
+                                                </div>
+                                                <p class="label">{input_help}</p>
+                                            </fieldset>
+                                        }
+                                            .into_any()
+                                    } else {
+                                        let radio_class = "radio radio-sm radio-primary";
+                                        let radio_space_class = "px-1";
+
+                                        view! {
+                                            <div class="flex flex-row justify-center mb-6 mt-2">
+                                                <div>
+                                                    <fieldset>
+                                                        <legend class="fieldset-legend">
+                                                            "Select first tone value"
+                                                        </legend>
+                                                        {(1..5)
+                                                            .into_iter()
+                                                            .map(|tone| {
+                                                                view! {
+                                                                    <label class=radio_space_class>
+                                                                        {tone}
+                                                                        <input
+                                                                            type="radio"
+                                                                            class=radio_class
+                                                                            value=tone
+                                                                            bind:group=first_tone_value
+                                                                            required
+                                                                        />
+                                                                    </label>
+                                                                }
+                                                            })
+                                                            .collect_view()}
+
+                                                    </fieldset>
+                                                    <fieldset>
+                                                        <legend class="fieldset-legend">
+                                                            "Select second tone value"
+                                                        </legend>
+                                                        {(1..6)
+                                                            .into_iter()
+                                                            .map(|tone| {
+                                                                view! {
+                                                                    <label class=radio_space_class>
+                                                                        {tone}
+                                                                        <input
+                                                                            type="radio"
+                                                                            class=radio_class
+                                                                            value=tone
+                                                                            bind:group=second_tone_value
+                                                                            required
+                                                                        />
+                                                                    </label>
+                                                                }
+                                                            })
+                                                            .collect_view()}
+
+                                                    </fieldset>
+                                                </div>
+                                                <div class="flex justify-center place-items-center ml-4">
+                                                    <input
+                                                        class="btn btn-primary text-white rounded-md"
+                                                        type="submit"
+                                                        value="Ok"
+                                                    />
+                                                </div>
+                                            </div>
+                                        }
+                                            .into_any()
+                                    }}
+
+                                </form>
+                            </div>
+                            <div class="flex">
+                                <label class="label">
+                                    "Remaining listenings: " {remaining_listenings}
+                                    <audio
+                                        autoplay
+                                        node_ref=audio_element
+                                        on:ended=move |_| { set_audio_playing(false) }
+                                    >
+                                        <source type="audio/mpeg" src=audio_url />
+                                    </audio>
+                                </label>
+                                {move || {
+                                    let btn_class = "btn btn-neutral rounded-md mx-2";
+                                    if audio_playing() || *remaining_listenings.read() == 0 {
+
+                                        view! {
+                                            <button class=btn_class disabled>
+                                                "Replay audio"
+                                            </button>
+                                        }
+                                            .into_any()
+                                    } else {
+
+                                        view! {
+                                            <button class=btn_class on:click=on_click_audio>
+                                                "Replay audio"
+                                            </button>
+                                        }
+                                            .into_any()
                                     }
-                                        .into_any()
-                                } else {
-
-                                    view! {
-                                        <fieldset>
-                                            <legend>"Select first tone value"</legend>
-                                            {(1..6)
-                                                .into_iter()
-                                                .map(|tone| {
-                                                    view! {
-                                                        <label>
-                                                            {tone}
-                                                            <input
-                                                                type="radio"
-                                                                value=tone
-                                                                bind:group=first_tone_value
-                                                            />
-                                                        </label>
-                                                    }
-                                                })
-                                                .collect_view()}
-
-                                        </fieldset>
-                                        <fieldset>
-                                            <legend>"Select second tone value"</legend>
-                                            {(1..6)
-                                                .into_iter()
-                                                .map(|tone| {
-                                                    view! {
-                                                        <label>
-                                                            {tone}
-                                                            <input
-                                                                type="radio"
-                                                                value=tone
-                                                                bind:group=second_tone_value
-                                                            />
-                                                        </label>
-                                                    }
-                                                })
-                                                .collect_view()}
-
-                                        </fieldset>
-                                        <input type="submit" value="Ok" />
-                                    }
-                                        .into_any()
                                 }}
-
-                            </form>
-                        </div>
-                        <div>
-                            <label>
-                                "Remaining listenings: " {remaining_listenings}
-                                <audio
-                                    autoplay
-                                    node_ref=audio_element
-                                    on:ended=move |_| { set_audio_playing(false) }
-                                >
-                                    <source type="audio/mpeg" src=audio_url />
-                                </audio>
-                            </label>
-                            {move || {
-                                if audio_playing() || *remaining_listenings.read() == 0 {
-
-                                    view! { <button disabled>"Play audio"</button> }
-                                        .into_any()
-                                } else {
-
-                                    view! { <button on:click=on_click_audio>"Play audio"</button> }
-                                        .into_any()
-                                }
-                            }}
+                            </div>
                         </div>
                     </div>
                 }

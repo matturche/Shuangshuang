@@ -40,153 +40,193 @@ pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> imp
             audio_quality: AudioQuality::from_str(&audio_quality()).unwrap(),
         }));
     };
+    let fieldset_class = "flex justify-center py-2";
+    let radio_class = "radio radio-sm radio-primary";
+    let label_class = "px-2";
+    let subtitle_font_class = "rounded-sm bg-neutral underline px-1";
     view! {
-        <form on:submit=on_submit>
-            <div>
-                <label for="nb_elements">"Number of test questions"</label>
-                <br />
-                <input
-                    type="range"
-                    min=nb_elements_min
-                    max=nb_elements_max
-                    step=nb_elements_step
-                    value=nb_elements
-                    node_ref=nb_elements_element
-                    list="values"
-                />
+        <div class="flex justify-center">
+            <div class="card bg-base-100 card-border border-base-300 card-md overflow-hidden px-10">
+                <form on:submit=on_submit>
+                    <div class="py-2">
+                        <label for="nb_elements" class=subtitle_font_class>
+                            "Number of test questions"
+                        </label>
+                        <div class="w-full max-w-xs">
+                            <input
+                                type="range"
+                                class="range range-sm range-primary [--range-thumb:white]"
+                                min=nb_elements_min
+                                max=nb_elements_max
+                                step=nb_elements_step
+                                value=nb_elements
+                                node_ref=nb_elements_element
+                                list="values"
+                            />
+                            {move || {
+                                let range_labels_class = "flex justify-between px-2.5 mt-1 text-xs";
+                                let mut range_ticks_view: Vec<AnyView> = vec![];
+                                let mut range_labels_view: Vec<AnyView> = vec![];
+                                for element_step in (nb_elements_min..nb_elements_max + 1)
+                                    .step_by(nb_elements_step)
+                                {
+                                    range_ticks_view.push(view! { <span>"|"</span> }.into_any());
+                                    range_labels_view
+                                        .push(view! { <span>{element_step}</span> }.into_any());
+                                }
 
-                <datalist id="values">
-                    {
-                        let mut datalist_options_views: Vec<AnyView> = vec![];
-                        for element_step in (nb_elements_min..nb_elements_max + 1)
-                            .step_by(nb_elements_step)
-                        {
-                            datalist_options_views
-                                .push(
-                                    view! {
-                                        <option value=element_step label=element_step></option>
+                                view! {
+                                    <div class=range_labels_class>
+                                        {range_ticks_view.collect_view()}
+                                    </div>
+                                    <div class=range_labels_class>
+                                        {range_labels_view.collect_view()}
+                                    </div>
+                                }
+                            }}
+
+                        </div>
+
+                    </div>
+                    <div>
+                        <fieldset>
+                            <legend class=subtitle_font_class>"Select exercise type"</legend>
+                            <div class=fieldset_class>
+                                <label class=label_class>
+                                    <a>"Tone Only"</a>
+                                    <input
+                                        type="radio"
+                                        class=radio_class
+                                        value=ExerciseType::ToneOnly.to_string()
+                                        bind:group=exercise_type
+                                    />
+                                </label>
+                                <label class=label_class>
+                                    "Pinyin"
+                                    <input
+                                        type="radio"
+                                        class=radio_class
+                                        value=ExerciseType::Pinyin.to_string()
+                                        bind:group=exercise_type
+                                    />
+                                </label>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div>
+                        <fieldset>
+                            <legend class=subtitle_font_class>"Select input style"</legend>
+                            <div class=fieldset_class>
+
+                                {move || {
+                                    if let ExerciseType::ToneOnly = ExerciseType::from_str(
+                                            &exercise_type(),
+                                        )
+                                        .unwrap()
+                                    {
+                                        view! {
+                                            <label class=label_class>
+                                                "Keyboard"
+                                                <input
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=InputStyle::Keyboard.to_string()
+                                                    bind:group=input_style
+                                                />
+                                            </label>
+                                            <label class=label_class>
+                                                "Buttons"
+                                                <input
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=InputStyle::Touch.to_string()
+                                                    bind:group=input_style
+                                                />
+                                            </label>
+                                        }
+                                            .into_any()
+                                    } else {
+                                        input_style.set(InputStyle::Keyboard.to_string());
+                                        view! {
+                                            <label class=label_class>
+                                                "Keyboard"
+                                                <input
+                                                    disabled
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=InputStyle::Keyboard.to_string()
+                                                    bind:group=input_style
+                                                />
+                                            </label>
+                                            <label class=label_class>
+                                                "Buttons"
+                                                <input
+                                                    disabled
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=InputStyle::Touch.to_string()
+                                                    bind:group=input_style
+                                                />
+                                            </label>
+                                        }
+                                            .into_any()
                                     }
-                                        .into_any(),
-                                )
-                        }
-                        datalist_options_views.collect_view()
-                    }
-                </datalist>
-
-            </div>
-            <div>
-                <fieldset>
-                    <legend>"Select exercise type"</legend>
-                    <label>
-                        "Tone Only"
-                        <input
-                            type="radio"
-                            value=ExerciseType::ToneOnly.to_string()
-                            bind:group=exercise_type
-                        />
-                    </label>
-                    <label>
-                        "Pinyin"
-                        <input
-                            type="radio"
-                            value=ExerciseType::Pinyin.to_string()
-                            bind:group=exercise_type
-                        />
-                    </label>
-                </fieldset>
-            </div>
-            <div>
-                <fieldset>
-                    <legend>"Select input style"</legend>
-
-                    {move || {
-                        if let ExerciseType::ToneOnly = ExerciseType::from_str(&exercise_type())
-                            .unwrap()
-                        {
-                            view! {
-                                <label>
-                                    "Keyboard"
+                                }}
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div>
+                        <fieldset>
+                            <legend class=subtitle_font_class>"Select audio quality"</legend>
+                            <div class=fieldset_class>
+                                <label class=label_class>
+                                    "Low"
                                     <input
                                         type="radio"
-                                        value=InputStyle::Keyboard.to_string()
-                                        bind:group=input_style
+                                        class=radio_class
+                                        value=AudioQuality::Q18k.to_string()
+                                        bind:group=audio_quality
                                     />
                                 </label>
-                                <label>
-                                    "Buttons"
+                                <label class=label_class>
+                                    "Medium"
                                     <input
                                         type="radio"
-                                        value=InputStyle::Touch.to_string()
-                                        bind:group=input_style
+                                        class=radio_class
+                                        value=AudioQuality::Q24k.to_string()
+                                        bind:group=audio_quality
                                     />
                                 </label>
-                            }
-                                .into_any()
-                        } else {
-                            input_style.set(InputStyle::Keyboard.to_string());
-                            view! {
-                                <label>
-                                    "Keyboard"
+                                <label class=label_class>
+                                    "High"
                                     <input
-                                        disabled
                                         type="radio"
-                                        value=InputStyle::Keyboard.to_string()
-                                        bind:group=input_style
+                                        class=radio_class
+                                        value=AudioQuality::Q64k.to_string()
+                                        bind:group=audio_quality
                                     />
                                 </label>
-                                <label>
-                                    "Buttons"
+                                <label class=label_class>
+                                    "Best"
                                     <input
-                                        disabled
                                         type="radio"
-                                        value=InputStyle::Touch.to_string()
-                                        bind:group=input_style
+                                        class=radio_class
+                                        value=AudioQuality::Q96k.to_string()
+                                        bind:group=audio_quality
                                     />
                                 </label>
-                            }
-                                .into_any()
-                        }
-                    }}
-                </fieldset>
+                            </div>
+                        </fieldset>
+                    </div>
+                    <div class="flex justify-center m-2 pb-2">
+                        <input
+                            type="submit"
+                            class="btn btn-accent text-white rounded-md"
+                            value="Start practice!"
+                        />
+                    </div>
+                </form>
             </div>
-            <div>
-                <fieldset>
-                    <legend>"Select audio quality"</legend>
-                    <label>
-                        "Low"
-                        <input
-                            type="radio"
-                            value=AudioQuality::Q18k.to_string()
-                            bind:group=audio_quality
-                        />
-                    </label>
-                    <label>
-                        "Medium"
-                        <input
-                            type="radio"
-                            value=AudioQuality::Q24k.to_string()
-                            bind:group=audio_quality
-                        />
-                    </label>
-                    <label>
-                        "High"
-                        <input
-                            type="radio"
-                            value=AudioQuality::Q64k.to_string()
-                            bind:group=audio_quality
-                        />
-                    </label>
-                    <label>
-                        "Best"
-                        <input
-                            type="radio"
-                            value=AudioQuality::Q96k.to_string()
-                            bind:group=audio_quality
-                        />
-                    </label>
-                </fieldset>
-            </div>
-            <input type="submit" value="Start practice!" />
-        </form>
+        </div>
     }
 }
