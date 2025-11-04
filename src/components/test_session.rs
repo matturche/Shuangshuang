@@ -246,7 +246,7 @@ pub fn TestSession(
                                                 <legend class="fieldset-legend">{input_label}</legend>
                                                 <div class="flex fit">
                                                     <input
-                                                        class="input input-neutral rounded-md"
+                                                        class="input input-neutral rounded-md text-[16px]"
                                                         required
                                                         autocapitalize="none"
                                                         type=input_type
