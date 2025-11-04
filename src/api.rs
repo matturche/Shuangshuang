@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use gloo_net::http::Request;
 
 use crate::{
@@ -18,9 +16,12 @@ pub async fn fetch_hanzi_pairs() -> Vec<HanziPair> {
     let lines: Vec<String> = text.lines().map(str::to_owned).collect();
     for line in lines.iter() {
         let splits: Vec<&str> = line.split(' ').collect();
+        let tones = splits[2];
+        // We know from the preprocessing that [tones] cannot be less than two chars, hence the
+        // unwrap
         let tone_pair: (Tone, Tone) = (
-            Tone::from_str(&splits[2].chars().nth(0).unwrap().to_string()).unwrap(),
-            Tone::from_str(&splits[2].chars().nth(1).unwrap().to_string()).unwrap(),
+            Tone::from(tones.chars().nth(0).unwrap()),
+            Tone::from(tones.chars().nth(1).unwrap()),
         );
         let characters = splits[0].to_string();
         let pinyin = splits[1].to_string();

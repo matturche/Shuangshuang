@@ -23,13 +23,14 @@ pub enum ToneError {
     Unknown,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Hash)]
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug, Hash)]
 #[allow(dead_code)]
 pub enum Tone {
     Tone1,
     Tone2,
     Tone3,
     Tone4,
+    #[default]
     NeutralTone,
 }
 
@@ -44,6 +45,19 @@ impl FromStr for Tone {
             "4" => Ok(Self::Tone4),
             "5" => Ok(Self::NeutralTone),
             _ => Err(ToneError::ParseToneError),
+        }
+    }
+}
+
+impl From<char> for Tone {
+    fn from(value: char) -> Self {
+        match value {
+            '1' => Self::Tone1,
+            '2' => Self::Tone2,
+            '3' => Self::Tone3,
+            '4' => Self::Tone4,
+            '5' => Self::NeutralTone,
+            _ => Self::NeutralTone,
         }
     }
 }
@@ -196,8 +210,8 @@ impl Default for HanziPair {
             characters: String::new(),
             pinyin: String::new(),
             pronounced_pinyin: String::new(),
-            tone_pair: (Tone::NeutralTone, Tone::NeutralTone),
-            pronounced_tone_pair: (Tone::NeutralTone, Tone::NeutralTone),
+            tone_pair: (Tone::default(), Tone::default()),
+            pronounced_tone_pair: (Tone::default(), Tone::default()),
         }
     }
 }

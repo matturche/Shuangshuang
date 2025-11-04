@@ -1,7 +1,6 @@
 use std::{collections::HashSet, str::FromStr};
 
 // use leptos::leptos_dom::logging::console_log;
-use pinyin::ToPinyin;
 use rand::Rng;
 use thiserror::Error;
 
@@ -57,20 +56,6 @@ pub fn get_tones_only_from_pronounced_pinyin(pinyin: &str) -> String {
         pinyin_tone_numbers.push_str(&Tone::NeutralTone.to_string());
     }
     pinyin_tone_numbers.to_string()
-}
-
-pub fn get_pinyin_from_chinese_word(word: &str) -> Option<String> {
-    let mut pinyin_output = String::new();
-    for pinyin in word.to_pinyin() {
-        if let Some(pinyin) = pinyin {
-            pinyin_output.push_str(pinyin.with_tone_num_end());
-        }
-    }
-    if pinyin_output.len() > 0 {
-        Some(pinyin_output)
-    } else {
-        None
-    }
 }
 
 pub fn get_pronounced_pinyin(word: &str, pinyin: &str, tone_pair: &(Tone, Tone)) -> String {
@@ -142,6 +127,21 @@ pub fn get_tones_from_pinyin(pinyin_with_nums: &str) -> Vec<Tone> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pinyin::ToPinyin;
+
+    pub fn get_pinyin_from_chinese_word(word: &str) -> Option<String> {
+        let mut pinyin_output = String::new();
+        for pinyin in word.to_pinyin() {
+            if let Some(pinyin) = pinyin {
+                pinyin_output.push_str(pinyin.with_tone_num_end());
+            }
+        }
+        if pinyin_output.len() > 0 {
+            Some(pinyin_output)
+        } else {
+            None
+        }
+    }
 
     #[test]
     fn get_tones_from_pinyin_works() {
