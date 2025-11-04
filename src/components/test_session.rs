@@ -72,7 +72,7 @@ pub fn TestSession(
                 let answer_elem = user_answer_element
                     .get()
                     .expect("<user_answer_element> should be mounted.");
-                answer = answer_elem.value();
+                answer = answer_elem.value().to_lowercase();
                 // Clean the value inside the input to prepare for next question
                 answer_elem.set_value("");
                 set_user_answer(answer.clone());
@@ -223,18 +223,22 @@ pub fn TestSession(
                                     {if let InputStyle::Keyboard = params().input_style {
                                         let input_placeholder: &str;
                                         let input_help: &str;
+                                        let input_type: &str;
                                         match params().exercise_type {
                                             ExerciseType::Pinyin => {
                                                 input_help = "e.g. if you hear 你好, type ni2hao3";
                                                 input_placeholder = "Type full pinyin";
+                                                input_type = "text";
                                             }
                                             ExerciseType::ToneOnly => {
                                                 input_help = "e.g. if you hear 你好, type 23";
                                                 input_placeholder = "Type tone numbers";
+                                                input_type = "number";
                                             }
                                             ExerciseType::NoTonePinyin => {
                                                 input_help = "e.g. if you hear 你好, type nihao";
                                                 input_placeholder = "Type pinyin without tone";
+                                                input_type = "text";
                                             }
                                         }
                                         view! {
@@ -242,9 +246,10 @@ pub fn TestSession(
                                                 <legend class="fieldset-legend">{input_label}</legend>
                                                 <div class="flex fit">
                                                     <input
-                                                        class="input input-neutral rounded-md lowercase"
+                                                        class="input input-neutral rounded-md"
                                                         required
-                                                        type="text"
+                                                        autocapitalize="none"
+                                                        type=input_type
                                                         node_ref=user_answer_element
                                                         value=user_answer
                                                         placeholder=input_placeholder
