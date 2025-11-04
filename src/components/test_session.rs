@@ -123,7 +123,9 @@ pub fn TestSession(
                     <div class="flex justify-center">
                         <div class="flex flex-col">
                             <div class="card h-full md:h-160 md:mt-10 bg-base-100 card-border border-base-300 card-md overflow-auto px-10">
-                                <div class="flex justify-center text-success">"Correct answers: " {exercise_summary.correct_answers}</div>
+                                <div class="flex justify-center text-success">
+                                    "Correct answers: " {exercise_summary.correct_answers}
+                                </div>
                                 <div class="flex justify-center text-success">
                                     "Percentage correct: "
                                     {format!("{:.2}%", exercise_summary.get_correct_percentage())}
@@ -164,7 +166,9 @@ pub fn TestSession(
                                                         view! {
                                                             <div class="flex flex-col justify-center">
                                                                 <div>
-                                                                    <a class="link link-info" href=elem_ref>{elem.hanzi_pair.characters.clone()}</a>
+                                                                    <a class="link link-info" href=elem_ref>
+                                                                        {elem.hanzi_pair.characters.clone()}
+                                                                    </a>
                                                                 </div>
                                                                 <div>
                                                                     "Expected pinyin answer: "
@@ -238,7 +242,7 @@ pub fn TestSession(
                                                 <legend class="fieldset-legend">{input_label}</legend>
                                                 <div class="flex fit">
                                                     <input
-                                                        class="input input-neutral rounded-md"
+                                                        class="input input-neutral rounded-md lowercase"
                                                         required
                                                         type="text"
                                                         node_ref=user_answer_element

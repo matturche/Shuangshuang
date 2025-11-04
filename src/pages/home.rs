@@ -33,7 +33,11 @@ pub fn Home() -> impl IntoView {
         }>
 
             <Suspense fallback=move || {
-                view! { <p>"Loading..."</p> }
+                view! {
+                    <div class="h-screen flex justify-center items-center">
+                        <span class="loading loading-spinner text-primary"></span>
+                    </div>
+                }
             }>
                 <div class="bg-base-200 h-screen">
                     {move || {
