@@ -1,12 +1,15 @@
 use crate::api::fetch_hanzi_pairs;
+use crate::components::language_controller::LanguageController;
 use crate::components::test_form::TestForm;
 use crate::components::test_session::TestSession;
 use crate::exercise::HanziPair;
+use crate::i18n::*;
 use leptos::prelude::*;
 
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
+    let i18n = use_i18n();
     let (exercise_params, set_exercise_params) = signal(None);
     let (exercise_finished, set_exercise_finished) = signal(false);
     let fetched_hanzi_pairs = LocalResource::new(async move || fetch_hanzi_pairs().await);
@@ -40,6 +43,10 @@ pub fn Home() -> impl IntoView {
                 }
             }>
                 <div class="bg-base-200 h-screen">
+                    <div class="flex justify-end p-2">
+                        <LanguageController />
+                    </div>
+
                     {move || {
                         Suspend::new(async move {
                             set_hanzi_pairs(fetched_hanzi_pairs.await);
@@ -57,8 +64,9 @@ pub fn Home() -> impl IntoView {
                                 .into_any()
                         } else {
                             view! {
-                                <div class="flex justify-center py-4">
-                                    <h1 class="text-2xl">"Welcome to Shuangshuang 爽双!"</h1>
+                                <div class="flex flex-col justify-center py-4 text-center">
+                                    <h1 class="text-2xl">{t!(i18n, intro.main_title)}</h1>
+                                    <p class="text-lg">{t!(i18n, intro.sub_title)}</p>
                                 </div>
 
                                 <TestForm set_exercise_params />

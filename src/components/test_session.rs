@@ -1,15 +1,19 @@
 use leptos::ev::SubmitEvent;
 use leptos::leptos_dom::logging::console_log;
 use leptos::{html, prelude::*};
+use leptos_use::use_interval_fn;
+use leptos_use::utils::Pausable;
 use urlencoding::encode;
 
 use crate::exercise::{ExerciseSummary, HanziPair, InputStyle};
+use crate::i18n::*;
 use crate::{
     exercise::{ExerciseParams, ExerciseType, ShuangElement},
     utils::{format_url, get_random_hanzi_pairs_idxs, get_tones_only_from_pronounced_pinyin},
 };
 
 const DEFAULT_LISTENINGS_TRIES: u32 = 3;
+const DEFAULT_TIMER_VALUE: u32 = 5;
 
 /// A component handling the exercise session for ShuangShuang
 #[component]
@@ -18,6 +22,7 @@ pub fn TestSession(
     exercise_params: ReadSignal<Option<ExerciseParams>>,
     set_exercise_finished: WriteSignal<bool>,
 ) -> impl IntoView {
+    let i18n = use_i18n();
     let (current_random_idx, set_current_random_idx) = signal(0);
     let (current_hanzi_pair, set_current_hanzi_pair) = signal(HanziPair::default());
     let (user_answer, set_user_answer) = signal("".to_string());
@@ -25,6 +30,7 @@ pub fn TestSession(
     let (shuang_elements, set_shuang_elements) = signal::<Vec<ShuangElement>>(vec![]);
     let (audio_playing, set_audio_playing) = signal(false);
     let (show_results, set_show_results) = signal(false);
+    let timer = RwSignal::new(DEFAULT_TIMER_VALUE);
     let first_tone_value = RwSignal::new("".to_string());
     let second_tone_value = RwSignal::new("".to_string());
     let user_answer_element: NodeRef<html::Input> = NodeRef::new();
@@ -40,6 +46,9 @@ pub fn TestSession(
             &current_hanzi_pair().characters,
             params().audio_quality,
         ));
+        set_remaining_listenings(params().audio_retries);
+        console_log(&format!("Current idx: {}", c_r_idx));
+        console_log(&format!("Current url: {}", audio_url()));
     };
     let play_hanzi_pair_audio = move |set_new_audio: bool| {
         let audio = audio_element
@@ -53,9 +62,9 @@ pub fn TestSession(
     };
 
     let input_label = move || match params().exercise_type {
-        ExerciseType::ToneOnly => "Enter which tones you hear",
-        ExerciseType::NoTonePinyin => "Enter pinyin without tone marks",
-        ExerciseType::Pinyin => "Enter full pinyin",
+        ExerciseType::ToneOnly => t_string!(i18n, exercise.input_label_tone_only),
+        ExerciseType::NoTonePinyin => t_string!(i18n, exercise.input_label_no_tone_pinyin),
+        ExerciseType::Pinyin => t_string!(i18n, exercise.input_label_pinyin),
     };
 
     let on_click_audio = move |_| {
@@ -99,19 +108,39 @@ pub fn TestSession(
         });
         if current_random_idx() < random_idxs.read().len() - 1 {
             set_current_random_idx.update(|idx| *idx += 1);
-            console_log(&format!("Current idx: {}", current_random_idx.read()));
             go_to_next_hanzi_pair();
             play_hanzi_pair_audio(true);
-            set_remaining_listenings(DEFAULT_LISTENINGS_TRIES);
-            console_log(&format!("Current url: {}", &audio_url()));
+            if params().timer_on {
+                timer.set(DEFAULT_TIMER_VALUE);
+            }
         } else {
             set_show_results(true);
         }
     };
 
+    // Function to handle countdown
+    let Pausable {
+        pause,
+        resume,
+        is_active,
+    } = use_interval_fn(
+        move || {
+            if timer.get() > 0 {
+                timer.update(|t| *t -= 1);
+            } else {
+                on_submit_answer();
+                timer.set(DEFAULT_TIMER_VALUE);
+            }
+        },
+        1000,
+    );
     view! {
         {move || {
-            if current_random_idx() == 0 {
+            if current_random_idx() == 0 && timer() == DEFAULT_TIMER_VALUE {
+                pause();
+                if params().timer_on {
+                    resume();
+                }
                 set_random_idxs(
                     get_random_hanzi_pairs_idxs(params().exercise_size, &hanzi_pairs()),
                 );
@@ -119,28 +148,39 @@ pub fn TestSession(
             }
             if show_results() {
                 let exercise_summary = ExerciseSummary::from(shuang_elements());
+                if is_active() {
+                    pause();
+                }
+
                 view! {
                     <div class="flex justify-center">
                         <div class="flex flex-col">
                             <div class="card h-full md:h-160 md:mt-10 bg-base-100 card-border border-base-300 card-md overflow-auto px-10">
                                 <div class="flex justify-center text-success">
-                                    "Correct answers: " {exercise_summary.correct_answers}
+                                    {t!(i18n, exercise.correct_answers)}
+                                    {exercise_summary.correct_answers}
                                 </div>
                                 <div class="flex justify-center text-success">
-                                    "Percentage correct: "
+                                    {t!(i18n, exercise.correct_percentage)}
                                     {format!("{:.2}%", exercise_summary.get_correct_percentage())}
                                 </div>
                                 <div class="flex flex-col justify-center text-center text-error">
                                     {if exercise_summary.tone_pair_mistakes.len() > 0 {
 
                                         view! {
-                                            "Incorrect tone combinations: "
+                                            {t!(i18n, exercise.incorrect_tone_pairs)}
                                             {exercise_summary
                                                 .tone_pair_mistakes
                                                 .iter()
                                                 .map(|(tone_pair, mistake_count)| {
                                                     view! {
-                                                        <li>{format!("{:?}: {mistake_count}", tone_pair)}</li>
+                                                        <li>
+                                                            {format!(
+                                                                "({}, {}) => {mistake_count}",
+                                                                tone_pair.0.to_string(),
+                                                                tone_pair.1.to_string(),
+                                                            )}
+                                                        </li>
                                                     }
                                                 })
                                                 .collect_view()}
@@ -157,7 +197,8 @@ pub fn TestSession(
                                         for elem in shuang_elements.read().iter() {
                                             if !elem.is_correct {
                                                 let elem_ref = format!(
-                                                    "https://www.mdbg.net/chinese/dictionary?wdqb={}",
+                                                    "{}{}",
+                                                    t_string!(i18n, exercise.dictionnary_link),
                                                     encode(&elem.hanzi_pair.characters),
                                                 );
                                                 mistakes_views
@@ -171,18 +212,20 @@ pub fn TestSession(
                                                                     </a>
                                                                 </div>
                                                                 <div>
-                                                                    "Expected pinyin answer: "
+                                                                    {t!(i18n, exercise.expected_pinyin_answer)}
                                                                     {elem.hanzi_pair.pronounced_pinyin.clone()}
                                                                 </div>
                                                                 <div>
-                                                                    "Expected tone answer: "
+                                                                    {t!(i18n, exercise.expected_tone_answer)}
                                                                     {format!(
                                                                         "{}{}",
                                                                         elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
                                                                         elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
                                                                     )}
                                                                 </div>
-                                                                <div>"User answer: "{elem.user_answer.clone()}</div>
+                                                                <div>
+                                                                    {t!(i18n, exercise.user_answer)}{elem.user_answer.clone()}
+                                                                </div>
                                                             </div>
                                                         }
                                                             .into_any(),
@@ -198,7 +241,7 @@ pub fn TestSession(
                                     class="btn rounded-md btn-secondary text-white"
                                     on:click=move |_| { set_exercise_finished(true) }
                                 >
-                                    "Go back to menu"
+                                    {t!(i18n, exercise.return_home)}
                                 </button>
                             </div>
                         </div>
@@ -206,6 +249,12 @@ pub fn TestSession(
                 }
                     .into_any()
             } else {
+                let countdown_style = move || { format!("--value:{}", timer.get()) };
+                let countdown_class = move || match timer() {
+                    0..2 => "text-error",
+                    2..4 => "text-warning",
+                    _ => "text-success",
+                };
                 view! {
                     <div class="flex h-full md:h-100 justify-center place-items-center">
                         <div class="flex flex-col justify-center">
@@ -213,12 +262,43 @@ pub fn TestSession(
                                 <a class="badge badge-accent text-white font-semibold">
                                     {random_idxs.read().len() - current_random_idx()}
                                 </a>
-                                " Remaining pairs"
+                                {t!(i18n, exercise.remaining_pairs)}
                             </div>
+                            {if params().timer_on {
+                                view! {
+                                    <div>
+                                        {t!(i18n, exercise.remaining_time)}
+                                        <span class="countdown font-mono">
+                                            <span
+                                                style=countdown_style()
+                                                aria-live="polite"
+                                                class=countdown_class()
+                                            >
+                                                {move || timer.get()}
+                                            </span>
+                                        </span>
+                                    </div>
+                                }
+                                    .into_any()
+                            } else {
+                                view! {}.into_any()
+                            }}
+
                             <div class="pt-2">
-                                <form on:submit=move |ev: SubmitEvent| {
-                                    ev.prevent_default();
-                                    on_submit_answer()
+                                <form on:submit={
+                                    let pause = pause.clone();
+                                    let resume = resume.clone();
+                                    let timer_on = params().timer_on;
+                                    move |ev: SubmitEvent| {
+                                        ev.prevent_default();
+                                        if timer_on {
+                                            pause();
+                                        }
+                                        on_submit_answer();
+                                        if timer_on {
+                                            resume();
+                                        }
+                                    }
                                 }>
                                     {if let InputStyle::Keyboard = params().input_style {
                                         let input_placeholder: &str;
@@ -226,24 +306,36 @@ pub fn TestSession(
                                         let input_type: &str;
                                         match params().exercise_type {
                                             ExerciseType::Pinyin => {
-                                                input_help = "e.g. if you hear 你好, type ni2hao3";
-                                                input_placeholder = "Type full pinyin";
+                                                input_help = &t_string!(i18n, exercise.input_help_pinyin);
+                                                input_placeholder = &t_string!(
+                                                    i18n, exercise.input_placeholder_pinyin
+                                                );
                                                 input_type = "text";
                                             }
                                             ExerciseType::ToneOnly => {
-                                                input_help = "e.g. if you hear 你好, type 23";
-                                                input_placeholder = "Type tone numbers";
+                                                input_help = &t_string!(
+                                                    i18n, exercise.input_help_tone_only
+                                                );
+                                                input_placeholder = &t_string!(
+                                                    i18n, exercise.input_placeholder_tone_only
+                                                );
                                                 input_type = "number";
                                             }
                                             ExerciseType::NoTonePinyin => {
-                                                input_help = "e.g. if you hear 你好, type nihao";
-                                                input_placeholder = "Type pinyin without tone";
+                                                input_help = &t_string!(
+                                                    i18n, exercise.input_help_no_tone_pinyin
+                                                );
+                                                input_placeholder = &t_string!(
+                                                    i18n, exercise.input_placeholder_no_tone_pinyin
+                                                );
                                                 input_type = "text";
                                             }
                                         }
                                         view! {
                                             <fieldset class="fieldset">
-                                                <legend class="fieldset-legend">{input_label}</legend>
+                                                <legend class="w-full text-xs font-semibold">
+                                                    {input_label}
+                                                </legend>
                                                 <div class="flex fit">
                                                     <input
                                                         class="input input-neutral rounded-md text-[16px]"
@@ -273,7 +365,7 @@ pub fn TestSession(
                                                 <div>
                                                     <fieldset>
                                                         <legend class="fieldset-legend">
-                                                            "Select first tone value"
+                                                            {t!(i18n, exercise.select_first_tone_value)}
                                                         </legend>
                                                         {(1..5)
                                                             .into_iter()
@@ -296,7 +388,7 @@ pub fn TestSession(
                                                     </fieldset>
                                                     <fieldset>
                                                         <legend class="fieldset-legend">
-                                                            "Select second tone value"
+                                                            {t!(i18n, exercise.select_second_tone_value)}
                                                         </legend>
                                                         {(1..6)
                                                             .into_iter()
@@ -332,9 +424,9 @@ pub fn TestSession(
 
                                 </form>
                             </div>
-                            <div class="flex">
+                            <div class="flex flex-wrap">
                                 <label class="label">
-                                    "Remaining listenings: " {remaining_listenings}
+                                    {t!(i18n, exercise.remaining_listenings)} {remaining_listenings}
                                     <audio
                                         autoplay
                                         node_ref=audio_element
@@ -349,7 +441,7 @@ pub fn TestSession(
 
                                         view! {
                                             <button class=btn_class disabled>
-                                                "Replay audio"
+                                                {t!(i18n, exercise.replay_audio)}
                                             </button>
                                         }
                                             .into_any()
@@ -357,12 +449,20 @@ pub fn TestSession(
 
                                         view! {
                                             <button class=btn_class on:click=on_click_audio>
-                                                "Replay audio"
+                                                {t!(i18n, exercise.replay_audio)}
                                             </button>
                                         }
                                             .into_any()
                                     }
                                 }}
+                            </div>
+                            <div class="flex justify-center">
+                                <button
+                                    class="link text-xs mt-6"
+                                    on:click=move |_| { set_exercise_finished(true) }
+                                >
+                                    {t!(i18n, exercise.return_home)}
+                                </button>
                             </div>
                         </div>
                     </div>

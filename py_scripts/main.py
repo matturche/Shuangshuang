@@ -1,10 +1,14 @@
 import unicodedata
 import re
+from typing import Dict
 from hanzipy.dictionary import HanziDictionary
 
 
-def clean_file_for_shuangshuang(in_path_1: str, in_path_2: str, out_path: str):
+def clean_file_for_shuangshuang(
+        in_path_1: str, in_path_2: str, out_path: str, stats_out_path: str
+):
     dictionary = HanziDictionary()
+    hanzi_pairs_stats_dict: Dict[str, int] = {}
     if out_path.endswith(".txt"):
         with open(out_path, "w", encoding="utf-8") as out_f:
             missing_record_set = set()
@@ -34,6 +38,15 @@ def clean_file_for_shuangshuang(in_path_1: str, in_path_2: str, out_path: str):
                             # NOTE: remove trailing 5th neutral tone in pinyin
                             pinyin = pinyin.replace('5', '')
                             out_f.write(f"{line} {pinyin} {tones}\n")
+                            if tones in hanzi_pairs_stats_dict:
+                                hanzi_pairs_stats_dict[tones] += 1
+                            else:
+                                hanzi_pairs_stats_dict[tones] = 1
+    total_hanzi = sum(hanzi_pairs_stats_dict.values())
+    with open(stats_out_path, "w", encoding="utf-8") as out_stats_f:
+        for (key, value) in hanzi_pairs_stats_dict.items():
+            percentage = (value/total_hanzi) * 100
+            out_stats_f.write(f"{key}: {value} ({percentage:.2f}%)\n")
 
 
 def character_is_hanzi(character: str) -> bool:
@@ -70,5 +83,6 @@ if __name__ == "__main__":
         "../data/HSK2012_all.txt",
         "../data/in_HSK2012_all_missing-audios.o.txt",
         "../data/output.txt",
+        "../data/hanzi_pairs_stats.txt"
     )
     print("Done!")

@@ -1,3 +1,5 @@
+leptos_i18n::load_locales!();
+use crate::i18n::*;
 use leptos::prelude::*;
 use leptos_meta::*;
 use leptos_router::{components::*, path};
@@ -13,6 +15,8 @@ mod utils;
 use crate::pages::home::Home;
 use crate::pages::not_found::NotFound;
 
+pub const LOCALES: &[&str] = &["en", "fr"];
+
 /// An app router which renders the homepage and handles 404's
 #[component]
 pub fn App() -> impl IntoView {
@@ -20,19 +24,21 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Html attr:lang="en" attr:dir="ltr" attr:data-theme="light" />
+        <I18nContextProvider>
+            <Html attr:lang="en" attr:dir="ltr" attr:data-theme="light" />
 
-        // sets the document title
-        <Title text="Shuangshuang" />
+            // sets the document title
+            <Title text="Shuangshuang" />
 
-        // injects metadata in the <head> of the page
-        <Meta charset="UTF-8" />
-        <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            // injects metadata in the <head> of the page
+            <Meta charset="UTF-8" />
+            <Meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-        <Router>
-            <Routes fallback=|| view! { <NotFound /> }>
-                <Route path=path!("/") view=Home />
-            </Routes>
-        </Router>
+            <Router>
+                <Routes fallback=|| view! { <NotFound /> }>
+                    <Route path=path!("/") view=Home />
+                </Routes>
+            </Router>
+        </I18nContextProvider>
     }
 }

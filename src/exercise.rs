@@ -4,6 +4,8 @@ use thiserror::Error;
 #[derive(Error, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
 pub enum ExerciseError {
+    #[error("Invalid str value for ExerciseDifficulty")]
+    ParseExerciseDifficultyError,
     #[error("Invalid str value for ExerciseType")]
     ParseExerciseTypeError,
     #[error("Invalid str value for InputStyle")]
@@ -70,6 +72,46 @@ impl ToString for Tone {
             Self::Tone3 => "3".to_string(),
             Self::Tone4 => "4".to_string(),
             Self::NeutralTone => "5".to_string(),
+        }
+    }
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[allow(dead_code)]
+pub enum ExerciseDifficulty {
+    #[default]
+    FirstTime,
+    Easy,
+    Normal,
+    Hard,
+    Native,
+    Custom,
+}
+
+impl ToString for ExerciseDifficulty {
+    fn to_string(&self) -> String {
+        match self {
+            Self::FirstTime => "first_time".to_string(),
+            Self::Easy => "easy".to_string(),
+            Self::Normal => "normal".to_string(),
+            Self::Hard => "hard".to_string(),
+            Self::Native => "native".to_string(),
+            Self::Custom => "custom".to_string(),
+        }
+    }
+}
+
+impl FromStr for ExerciseDifficulty {
+    type Err = ExerciseError;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "first_time" => Ok(Self::FirstTime),
+            "easy" => Ok(Self::Easy),
+            "normal" => Ok(Self::Normal),
+            "hard" => Ok(Self::Hard),
+            "native" => Ok(Self::Native),
+            "custom" => Ok(Self::Custom),
+            _ => Err(ExerciseError::ParseExerciseDifficultyError),
         }
     }
 }
@@ -174,6 +216,7 @@ pub struct ExerciseParams {
     pub input_style: InputStyle,
     pub timer_on: bool,
     pub audio_quality: AudioQuality,
+    pub audio_retries: u32,
 }
 
 impl Default for ExerciseParams {
@@ -184,6 +227,55 @@ impl Default for ExerciseParams {
             input_style: InputStyle::default(),
             timer_on: false,
             audio_quality: AudioQuality::default(),
+            audio_retries: 3,
+        }
+    }
+}
+
+impl From<ExerciseDifficulty> for ExerciseParams {
+    fn from(value: ExerciseDifficulty) -> Self {
+        match value {
+            ExerciseDifficulty::FirstTime => Self {
+                exercise_size: 10,
+                exercise_type: ExerciseType::ToneOnly,
+                input_style: InputStyle::Touch,
+                timer_on: false,
+                audio_quality: AudioQuality::Q64k,
+                audio_retries: 5,
+            },
+            ExerciseDifficulty::Easy => Self {
+                exercise_size: 15,
+                exercise_type: ExerciseType::ToneOnly,
+                input_style: InputStyle::Keyboard,
+                timer_on: false,
+                audio_quality: AudioQuality::Q64k,
+                audio_retries: 3,
+            },
+            ExerciseDifficulty::Normal => Self {
+                exercise_size: 20,
+                exercise_type: ExerciseType::Pinyin,
+                input_style: InputStyle::Keyboard,
+                timer_on: false,
+                audio_quality: AudioQuality::Q64k,
+                audio_retries: 3,
+            },
+            ExerciseDifficulty::Hard => Self {
+                exercise_size: 25,
+                exercise_type: ExerciseType::Pinyin,
+                input_style: InputStyle::Keyboard,
+                timer_on: false,
+                audio_quality: AudioQuality::Q24k,
+                audio_retries: 2,
+            },
+            ExerciseDifficulty::Native => Self {
+                exercise_size: 40,
+                exercise_type: ExerciseType::Pinyin,
+                input_style: InputStyle::Keyboard,
+                timer_on: true,
+                audio_quality: AudioQuality::Q18k,
+                audio_retries: 1,
+            },
+            ExerciseDifficulty::Custom => Self::default(),
         }
     }
 }
