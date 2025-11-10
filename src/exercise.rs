@@ -241,7 +241,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 input_style: InputStyle::Touch,
                 timer_on: false,
                 audio_quality: AudioQuality::Q64k,
-                audio_retries: 5,
+                audio_retries: 10,
             },
             ExerciseDifficulty::Easy => Self {
                 exercise_size: 15,
@@ -249,7 +249,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 input_style: InputStyle::Keyboard,
                 timer_on: false,
                 audio_quality: AudioQuality::Q64k,
-                audio_retries: 3,
+                audio_retries: 5,
             },
             ExerciseDifficulty::Normal => Self {
                 exercise_size: 20,

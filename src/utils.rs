@@ -17,10 +17,16 @@ pub enum TextHandlingError {
     Unknown,
 }
 
-pub fn format_url(chinese_word: &str, audio_quality: AudioQuality) -> String {
+pub fn format_word_url(chinese_word: &str, audio_quality: AudioQuality) -> String {
     format!(
         "https://github.com/hugolpz/audio-cmn/raw/refs/heads/master/{}/hsk/cmn-{chinese_word}.mp3",
         audio_quality.to_string()
+    )
+}
+
+pub fn format_toned_syllable_url(syllable: &str, tone: &str) -> String {
+    format!(
+        "https://github.com/hugolpz/audio-cmn/raw/refs/heads/master/64k/syllabs/cmn-{syllable}{tone}.mp3"
     )
 }
 

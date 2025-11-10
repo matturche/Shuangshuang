@@ -17,8 +17,14 @@
   "input_placeholder_pinyin": "Écrivez le pinyin ",
   "correct_answers": "Réponses correctes : ",
   "correct_percentage": "Pourcentage correct : ",
+  "test_result":[
+    ["Vous avez besoin de plus d'entraînement, peut-être que baisser la difficulté pourra vous aider.", "0..=49"],
+    ["Courage ! Continuer cet exercise devrait vous aider à progresser !", "50..=70"],
+    ["Vous y êtes presque ! Encore un peu d'efforts !", "71..=79"],
+    ["Félicitations ! Vous avez passé le test, maintenant vous pouvez passer à la difficulté supérieure...", "_"]
+  ],
   "incorrect_tone_pairs": "Paires de tons incorrectes",
-  "dictionnary_link": "https://www.mdbg.net/chinese/dictionary?wdqb=",
+  "dictionnary_link": "https://dictionnaire.reverso.net/chinois-francais/",
   "expected_pinyin_answer": "Réponse pinyin attendue : ",
   "expected_tone_answer": "Réponse de tons attendue : ",
   "user_answer": "Votre réponse : "

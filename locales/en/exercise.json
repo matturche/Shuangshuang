@@ -17,6 +17,12 @@
   "input_placeholder_pinyin": "Type full pinyin",
   "correct_answers": "Correct answers: ",
   "correct_percentage": "Percentage correct: ",
+  "test_result":[
+    ["You need some more training, lowering the difficulty might help you.", "0..=49"],
+    ["Keep it up! Redoing this exercise will help you progress!", "50..=70"],
+    ["Almost there! Give it another try!", "71..=79"],
+    ["Congratulations! You passed the test, you can now increase the difficulty...", "_"]
+  ],
   "incorrect_tone_pairs": "Incorrect tone pairs",
   "dictionnary_link": "https://www.mdbg.net/chinese/dictionary?wdqb=",
   "expected_pinyin_answer": "Expected pinyin answer: ",

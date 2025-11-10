@@ -5,11 +5,15 @@ use leptos_use::use_interval_fn;
 use leptos_use::utils::Pausable;
 use urlencoding::encode;
 
+use crate::components::touch_tone_buttons::TouchToneButtons;
 use crate::exercise::{ExerciseSummary, HanziPair, InputStyle};
 use crate::i18n::*;
 use crate::{
     exercise::{ExerciseParams, ExerciseType, ShuangElement},
-    utils::{format_url, get_random_hanzi_pairs_idxs, get_tones_only_from_pronounced_pinyin},
+    utils::{
+        format_toned_syllable_url, format_word_url, get_random_hanzi_pairs_idxs,
+        get_tones_only_from_pronounced_pinyin,
+    },
 };
 
 const DEFAULT_LISTENINGS_TRIES: u32 = 3;
@@ -25,6 +29,7 @@ pub fn TestSession(
     let i18n = use_i18n();
     let (current_random_idx, set_current_random_idx) = signal(0);
     let (current_hanzi_pair, set_current_hanzi_pair) = signal(HanziPair::default());
+    let (current_pronounced_pinyin, set_current_pronounced_pinyin) = signal("".to_string());
     let (user_answer, set_user_answer) = signal("".to_string());
     let (random_idxs, set_random_idxs) = signal(vec![]);
     let (shuang_elements, set_shuang_elements) = signal::<Vec<ShuangElement>>(vec![]);
@@ -41,8 +46,10 @@ pub fn TestSession(
     let go_to_next_hanzi_pair = move || {
         let c_r_idx: usize = current_random_idx();
         let c_idx: usize = random_idxs.read()[c_r_idx];
-        set_current_hanzi_pair(hanzi_pairs.read()[c_idx].clone());
-        set_audio_url(format_url(
+        let hp = hanzi_pairs.read()[c_idx].clone();
+        set_current_pronounced_pinyin(hp.pronounced_pinyin.clone());
+        set_current_hanzi_pair(hp);
+        set_audio_url(format_word_url(
             &current_hanzi_pair().characters,
             params().audio_quality,
         ));
@@ -151,18 +158,36 @@ pub fn TestSession(
                 if is_active() {
                     pause();
                 }
+                let rounded_percentage = (exercise_summary.get_correct_percentage() * 100.0).round()
+                    / 100.0;
+                let result_color_class = match rounded_percentage {
+                    0.0..50.0 => "text-error",
+                    50.0..71.0 => "text-accent",
+                    71.0..80.0 => "text-warning",
+                    _ => "text-success",
+                };
 
                 view! {
                     <div class="flex justify-center">
                         <div class="flex flex-col">
                             <div class="card h-full md:h-160 md:mt-10 bg-base-100 card-border border-base-300 card-md overflow-auto px-10">
-                                <div class="flex justify-center text-success">
+                                <div class="flex justify-center">
                                     {t!(i18n, exercise.correct_answers)}
-                                    {exercise_summary.correct_answers}
+                                    <a class=result_color_class>
+                                        {exercise_summary.correct_answers}
+                                    </a>
                                 </div>
-                                <div class="flex justify-center text-success">
+                                <div class="flex justify-center">
                                     {t!(i18n, exercise.correct_percentage)}
-                                    {format!("{:.2}%", exercise_summary.get_correct_percentage())}
+                                    <a class=result_color_class>{rounded_percentage}</a>
+                                </div>
+                                <div class="text-center">
+                                    {
+                                        let count = exercise_summary
+                                            .get_correct_percentage()
+                                            .floor() as i32;
+                                        t!(i18n, exercise.test_result, count = move || count)
+                                    }
                                 </div>
                                 <div class="flex flex-col justify-center text-center text-error">
                                     {if exercise_summary.tone_pair_mistakes.len() > 0 {
@@ -203,7 +228,6 @@ pub fn TestSession(
                                                 );
                                                 mistakes_views
                                                     .push(
-
                                                         view! {
                                                             <div class="flex flex-col justify-center">
                                                                 <div>
@@ -357,59 +381,14 @@ pub fn TestSession(
                                         }
                                             .into_any()
                                     } else {
-                                        let radio_class = "radio radio-sm radio-primary";
-                                        let radio_space_class = "px-1";
-
                                         view! {
                                             <div class="flex flex-row justify-center mb-6 mt-2">
-                                                <div>
-                                                    <fieldset>
-                                                        <legend class="fieldset-legend">
-                                                            {t!(i18n, exercise.select_first_tone_value)}
-                                                        </legend>
-                                                        {(1..5)
-                                                            .into_iter()
-                                                            .map(|tone| {
-                                                                view! {
-                                                                    <label class=radio_space_class>
-                                                                        {tone}
-                                                                        <input
-                                                                            type="radio"
-                                                                            class=radio_class
-                                                                            value=tone
-                                                                            bind:group=first_tone_value
-                                                                            required
-                                                                        />
-                                                                    </label>
-                                                                }
-                                                            })
-                                                            .collect_view()}
-
-                                                    </fieldset>
-                                                    <fieldset>
-                                                        <legend class="fieldset-legend">
-                                                            {t!(i18n, exercise.select_second_tone_value)}
-                                                        </legend>
-                                                        {(1..6)
-                                                            .into_iter()
-                                                            .map(|tone| {
-                                                                view! {
-                                                                    <label class=radio_space_class>
-                                                                        {tone}
-                                                                        <input
-                                                                            type="radio"
-                                                                            class=radio_class
-                                                                            value=tone
-                                                                            bind:group=second_tone_value
-                                                                            required
-                                                                        />
-                                                                    </label>
-                                                                }
-                                                            })
-                                                            .collect_view()}
-
-                                                    </fieldset>
-                                                </div>
+                                                <TouchToneButtons
+                                                    pronounced_pinyin=current_pronounced_pinyin
+                                                    first_tone_value
+                                                    second_tone_value
+                                                    set_audio_playing
+                                                />
                                                 <div class="flex justify-center place-items-center ml-4">
                                                     <input
                                                         class="btn btn-primary text-white rounded-md"
