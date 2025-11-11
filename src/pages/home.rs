@@ -2,6 +2,7 @@ use crate::api::fetch_hanzi_pairs;
 use crate::components::language_controller::LanguageController;
 use crate::components::test_form::TestForm;
 use crate::components::test_session::TestSession;
+use crate::components::theme_controller::ThemeController;
 use crate::exercise::HanziPair;
 use crate::i18n::*;
 use leptos::prelude::*;
@@ -44,6 +45,7 @@ pub fn Home() -> impl IntoView {
             }>
                 <div class="bg-base-200 h-screen">
                     <div class="flex justify-end p-2">
+                        <ThemeController />
                         <LanguageController />
                     </div>
 
