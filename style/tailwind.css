@@ -2,6 +2,8 @@
 
 @source "./src/**/*.rs";
 
+@plugin "@tailwindcss/typography";
+
 @plugin "daisyui" {
   themes: pastel;
 }
@@ -78,6 +80,10 @@
 
 body {
   font-family: sans-serif;
+}
+
+div.email > span:nth-child(2) {
+	display: none;
 }
 
 

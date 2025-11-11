@@ -1,4 +1,5 @@
 use crate::api::fetch_hanzi_pairs;
+use crate::components::context::Context;
 use crate::components::language_controller::LanguageController;
 use crate::components::test_form::TestForm;
 use crate::components::test_session::TestSession;
@@ -65,13 +66,77 @@ pub fn Home() -> impl IntoView {
                             }
                                 .into_any()
                         } else {
+                            let tab_class = "tab-content pt-2 pb-8";
                             view! {
                                 <div class="flex flex-col justify-center py-4 text-center">
                                     <h1 class="text-2xl">{t!(i18n, intro.main_title)}</h1>
                                     <p class="text-lg">{t!(i18n, intro.sub_title)}</p>
                                 </div>
 
-                                <TestForm set_exercise_params />
+                                <div class="flex justify-center bg-base-200">
+                                    <div class="tabs tabs-border justify-center">
+                                        <input
+                                            type="radio"
+                                            name="my_tabs_2"
+                                            class="tab"
+                                            aria-label=t_string!(i18n, form.exercise_tab)
+                                            checked="checked"
+                                        />
+                                        <div class=tab_class>
+                                            <TestForm set_exercise_params />
+                                        </div>
+
+                                        <input
+                                            type="radio"
+                                            name="my_tabs_2"
+                                            class="tab"
+                                            aria-label=t_string!(i18n, context.context_tab)
+                                        />
+                                        <div class=tab_class>
+                                            <Context />
+                                        </div>
+
+                                        <input
+                                            type="radio"
+                                            name="my_tabs_2"
+                                            class="tab"
+                                            aria-label=t_string!(i18n, about.about_tab)
+                                        />
+                                        <div class=tab_class>
+                                            // <div class="email">
+                                            // should<span>.</span><span>gustave</span><span>put</span>
+                                            // <span>@</span> <span>email</span><span>.</span>
+                                            // <span>org</span>
+                                            // </div>
+                                            <div class="flex flex-row justify-center">
+                                                <p>
+                                                    {t!(i18n, about.free)}
+                                                    <li>
+                                                        {t!(i18n, about.source_code)}
+                                                        <a
+                                                            class="link"
+                                                            href="https://github.com/matturche/Shuangshuang/"
+                                                        >
+                                                            "GitHub"
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        {t!(i18n, about.audio_origins)}
+                                                        <a class="link" href="https://github.com/hugolpz/audio-cmn">
+                                                            "GitHub"
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        {t!(i18n, about.pinyin_entries)}
+                                                        <a class="link" href="https://cc-cedict.org/wiki/">
+                                                            "CC-CEDICT"
+                                                        </a>
+                                                    </li>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             }
                                 .into_any()
                         }

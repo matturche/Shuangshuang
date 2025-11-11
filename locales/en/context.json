@@ -1,3 +1,8 @@
 {
-  "placeholder": ""
+  "context_tab": "Context",
+  "app_context_1": "Learning to recognize tones is a very important part of mastering the Chinese language. It can be a difficult task, especially for learners coming from a non-tonal language (such as English or French).",
+  "app_context_2": "This website aims to provide tests of increasing difficulty for learners, making them guess the tones or the pinyin of a two-character word. Users first hear the word, then input their answer.",
+  "app_context_3": "The app focuses solely on two-character words, first because they represent a substantial amount of modern Mandarin vocabulary (out of the 5,000 words in the 2012 version of the HSK exam, 3,600 two-character words were extracted, and those are only the ones with a recorded audio file), but mostly because tones are relative to each other, and the best way to get a grip on this relativity is to listen to tones in pairs.",
+  "starting_out": "To make the best use of this website, we recommend that you already be familiar with pinyin and Chinese pronunciation in general. If you don't know where to start, you can use the pinyin chart freely available on Yoyo Chinese. Complement it with other ressources to look at tongue and lips positions to produce correct sounds.",
+  "sandhi": "There are a few rules for tone change in Mandarin. In the 3-3 tone pair, the first 3rd tone will be pronounced as a 2nd tone. The character 不 (bù) is normally pronounced in the 4th tone, but if it precedes another character with the 4th tone, then it will be pronounced as a 2nd tone. The character 一 (yī) is normally pronounced in the 1st tone, but it behaves the same way as 不 with the 4th tone, additionally, with any other tone, it is pronounced in the 4th tone. Finally, not so much a tone change, but the 3rd tone in tone pairs is usually not pronounced fully (descending-ascending) but low and flat."
 }

@@ -1,4 +1,7 @@
 {
-  "main_title": "Bienvenue sur Shuangshuang 爽双 !",
-  "sub_title": "Testez vos compétences d'écoute en chinois pour le pinyin et les tons !"
+  "about_tab": "About",
+  "free": "This project is free and without ads.",
+  "source_code": "Source code: ",
+  "audio_origins": "Audio used from: ",
+  "pinyin_entries": "Pinyin entries from the CC-CEDICT project: "
 }
