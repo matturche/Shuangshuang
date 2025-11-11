@@ -12,7 +12,6 @@ use crate::i18n::*;
 #[component]
 pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> impl IntoView {
     let i18n = use_i18n();
-    let current_locale = i18n.get_locale_untracked();
     let (nb_elements, set_nb_elements) = signal(5);
     let exercise_difficulty = RwSignal::new(ExerciseDifficulty::default().to_string());
     let exercise_type = RwSignal::new(ExerciseType::default().to_string());

@@ -25,6 +25,7 @@
   ],
   "incorrect_tone_pairs": "Incorrect tone pairs",
   "dictionnary_link": "https://www.mdbg.net/chinese/dictionary?wdqb=",
+  "link_to_dictionnary": "Dictionnary link",
   "expected_pinyin_answer": "Expected pinyin answer: ",
   "expected_tone_answer": "Expected tone answer: ",
   "user_answer": "Your answer: "

@@ -10,10 +10,7 @@ use crate::exercise::{ExerciseSummary, HanziPair, InputStyle};
 use crate::i18n::*;
 use crate::{
     exercise::{ExerciseParams, ExerciseType, ShuangElement},
-    utils::{
-        format_toned_syllable_url, format_word_url, get_random_hanzi_pairs_idxs,
-        get_tones_only_from_pronounced_pinyin,
-    },
+    utils::{format_word_url, get_random_hanzi_pairs_idxs, get_tones_only_from_pronounced_pinyin},
 };
 
 const DEFAULT_LISTENINGS_TRIES: u32 = 3;
@@ -226,29 +223,52 @@ pub fn TestSession(
                                                     t_string!(i18n, exercise.dictionnary_link),
                                                     encode(&elem.hanzi_pair.characters),
                                                 );
+                                                let audio_url = format_word_url(
+                                                    &elem.hanzi_pair.characters,
+                                                    params().audio_quality,
+                                                );
                                                 mistakes_views
                                                     .push(
                                                         view! {
-                                                            <div class="flex flex-col justify-center">
-                                                                <div>
-                                                                    <a class="link link-info" href=elem_ref>
+                                                            <div class="collapse collapse-arrow bg-base-100 border border-base-300">
+                                                                <input
+                                                                    type="radio"
+                                                                    name="my-accordion-2"
+                                                                    checked="checked"
+                                                                />
+                                                                <div class="collapse-title font-semibold">
+                                                                    <a class="link link-info">
                                                                         {elem.hanzi_pair.characters.clone()}
                                                                     </a>
                                                                 </div>
-                                                                <div>
-                                                                    {t!(i18n, exercise.expected_pinyin_answer)}
-                                                                    {elem.hanzi_pair.pronounced_pinyin.clone()}
-                                                                </div>
-                                                                <div>
-                                                                    {t!(i18n, exercise.expected_tone_answer)}
-                                                                    {format!(
-                                                                        "{}{}",
-                                                                        elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
-                                                                        elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
-                                                                    )}
-                                                                </div>
-                                                                <div>
-                                                                    {t!(i18n, exercise.user_answer)}{elem.user_answer.clone()}
+                                                                <div class="collapse-content">
+                                                                    <div class="flex flex-col justify-center">
+                                                                        <div>
+                                                                            <audio controls>
+                                                                                <source type="audio/mpeg" src=audio_url />
+                                                                            </audio>
+                                                                        </div>
+                                                                        <div>
+                                                                            <a class="link link-info" href=elem_ref>
+                                                                                {t!(i18n, exercise.link_to_dictionnary)}
+                                                                            </a>
+                                                                        </div>
+                                                                        <div>
+                                                                            {t!(i18n, exercise.expected_pinyin_answer)}
+                                                                            {elem.hanzi_pair.pronounced_pinyin.clone()}
+                                                                        </div>
+                                                                        <div>
+                                                                            {t!(i18n, exercise.expected_tone_answer)}
+                                                                            {format!(
+                                                                                "{}{}",
+                                                                                elem.hanzi_pair.pronounced_tone_pair.0.clone().to_string(),
+                                                                                elem.hanzi_pair.pronounced_tone_pair.1.clone().to_string(),
+                                                                            )}
+                                                                        </div>
+                                                                        <div>
+                                                                            {t!(i18n, exercise.user_answer)}{elem.user_answer.clone()}
+                                                                        </div>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         }

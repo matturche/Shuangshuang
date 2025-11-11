@@ -25,6 +25,7 @@
   ],
   "incorrect_tone_pairs": "Paires de tons incorrectes",
   "dictionnary_link": "https://dictionnaire.reverso.net/chinois-francais/",
+  "link_to_dictionnary": "Lien vers le dictionnaire",
   "expected_pinyin_answer": "Réponse pinyin attendue : ",
   "expected_tone_answer": "Réponse de tons attendue : ",
   "user_answer": "Votre réponse : "
