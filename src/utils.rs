@@ -9,6 +9,8 @@ use thiserror::Error;
 
 use crate::exercise::{AudioQuality, HanziPair, ShuffleMode, Tone};
 
+const WHILE_BREAK_LIMIT: u32 = 50;
+
 #[derive(Error, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
 pub enum TextHandlingError {
@@ -41,14 +43,20 @@ pub fn get_random_hanzi_pairs_idxs(
     let mut idxs: Vec<usize> = vec![];
     let mut used_idxs: HashSet<usize> = HashSet::new();
     let mut rng = rand::rng();
+    let mut break_counter = 0;
     match shuffle_mode {
         ShuffleMode::Random => {
             for _ in 0..nb_elements {
-                let random_idx: usize = rng.random_range(0..hanzi_pairs.len());
-                if !used_idxs.contains(&random_idx) {
-                    idxs.push(random_idx);
-                    used_idxs.insert(random_idx);
+                let mut random_idx: usize = rng.random_range(0..hanzi_pairs.len());
+                while used_idxs.contains(&random_idx) {
+                    random_idx = rng.random_range(0..hanzi_pairs.len());
+                    break_counter += 1;
+                    if break_counter >= WHILE_BREAK_LIMIT {
+                        break;
+                    }
                 }
+                idxs.push(random_idx);
+                used_idxs.insert(random_idx);
             }
         }
         ShuffleMode::Even => {
@@ -66,13 +74,19 @@ pub fn get_random_hanzi_pairs_idxs(
             for _ in 0..nb_elements {
                 let random_tone_pair_key_idx: usize = rng.random_range(0..tone_pairs_keys.len());
                 let random_tone_pair_key = tone_pairs_keys[random_tone_pair_key_idx];
-                let random_idx: usize =
+                let mut random_idx: usize =
                     rng.random_range(0..tone_pairs_map[random_tone_pair_key].len());
-                let hanzi_pair_idx = tone_pairs_map[random_tone_pair_key][random_idx];
-                if !used_idxs.contains(&hanzi_pair_idx) {
-                    idxs.push(hanzi_pair_idx);
-                    used_idxs.insert(hanzi_pair_idx);
+                let mut hanzi_pair_idx: usize = tone_pairs_map[random_tone_pair_key][random_idx];
+                while used_idxs.contains(&hanzi_pair_idx) {
+                    random_idx = rng.random_range(0..tone_pairs_map[random_tone_pair_key].len());
+                    hanzi_pair_idx = tone_pairs_map[random_tone_pair_key][random_idx];
+                    break_counter += 1;
+                    if break_counter >= WHILE_BREAK_LIMIT {
+                        break;
+                    }
                 }
+                idxs.push(hanzi_pair_idx);
+                used_idxs.insert(hanzi_pair_idx);
             }
         }
     }
