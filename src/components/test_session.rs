@@ -176,7 +176,7 @@ pub fn TestSession(
                                 </div>
                                 <div class="flex justify-center">
                                     {t!(i18n, exercise.correct_percentage)}
-                                    <a class=result_color_class>{rounded_percentage}</a>
+                                    <a class=result_color_class>{rounded_percentage}"%"</a>
                                 </div>
                                 <div class="text-center">
                                     {
@@ -213,7 +213,7 @@ pub fn TestSession(
                                     }}
 
                                 </div>
-                                <div>
+                                <div class="py-4">
                                     {
                                         let mut mistakes_views: Vec<AnyView> = vec![];
                                         for elem in shuang_elements.read().iter() {
@@ -231,13 +231,9 @@ pub fn TestSession(
                                                     .push(
                                                         view! {
                                                             <div class="collapse collapse-arrow bg-base-100 border border-base-300">
-                                                                <input
-                                                                    type="radio"
-                                                                    name="my-accordion-2"
-                                                                    checked="checked"
-                                                                />
+                                                                <input type="radio" name="errors_accordion" />
                                                                 <div class="collapse-title font-semibold">
-                                                                    <a class="link link-info">
+                                                                    <a class="link link-error">
                                                                         {elem.hanzi_pair.characters.clone()}
                                                                     </a>
                                                                 </div>

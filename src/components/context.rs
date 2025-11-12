@@ -9,15 +9,15 @@ pub fn Context() -> impl IntoView {
     view! {
         {move || {
             view! {
-                <article class="prose">
-                    <h3>"What is Shuangshuang?"</h3>
+                <article class="prose mx-2">
+                    <h3>{t!(i18n, context.context_subtitle)}</h3>
                     <p>
                         {t!(i18n, context.app_context_1)}<br />{t!(i18n, context.app_context_2)}
                         <br /> {t!(i18n, context.app_context_3)}
                     </p>
-                    <h3>"Starting out"</h3>
+                    <h3>{t!(i18n, context.starting_out_subtitle)}</h3>
                     <p>{t!(i18n, context.starting_out)}</p>
-                    <h3>"Tone rules"</h3>
+                    <h3>{t!(i18n, context.tone_rules_subtitle)}</h3>
                     <p>{t!(i18n, context.sandhi)}</p>
                 </article>
             }
