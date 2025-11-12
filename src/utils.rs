@@ -9,7 +9,7 @@ use thiserror::Error;
 
 use crate::exercise::{AudioQuality, HanziPair, ShuffleMode, Tone};
 
-const WHILE_BREAK_LIMIT: u32 = 50;
+const WHILE_BREAK_LIMIT: u32 = 150;
 
 #[derive(Error, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
