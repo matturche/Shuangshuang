@@ -5,7 +5,9 @@ use leptos::prelude::*;
 use std::str::FromStr;
 
 use crate::components::subtitle_with_helper::SubtitleWithHelper;
-use crate::exercise::{AudioQuality, ExerciseDifficulty, ExerciseParams, ExerciseType, InputStyle};
+use crate::exercise::{
+    AudioQuality, ExerciseDifficulty, ExerciseParams, ExerciseType, InputStyle, ShuffleMode,
+};
 use crate::i18n::*;
 
 /// A component to enter exercise parameters for ShuangShuang
@@ -14,6 +16,7 @@ pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> imp
     let i18n = use_i18n();
     let (nb_elements, set_nb_elements) = signal(5);
     let exercise_difficulty = RwSignal::new(ExerciseDifficulty::default().to_string());
+    let shuffle_mode = RwSignal::new(ShuffleMode::default().to_string());
     let exercise_type = RwSignal::new(ExerciseType::default().to_string());
     let input_style = RwSignal::new(InputStyle::default().to_string());
     let timer_on = RwSignal::new(false);
@@ -39,6 +42,7 @@ pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> imp
                 exercise_size,
                 exercise_type: ExerciseType::from_str(&exercise_type()).unwrap(),
                 input_style: InputStyle::from_str(&input_style()).unwrap(),
+                shuffle_mode: ShuffleMode::from_str(&shuffle_mode()).unwrap(),
                 timer_on: timer_on(),
                 audio_quality: AudioQuality::from_str(&audio_quality()).unwrap(),
                 audio_retries: nb_audio_retries,
@@ -92,6 +96,22 @@ pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> imp
             difficulty_helper_desc_view.collect_view()
         }
     };
+    let shuffle_mode_helper_desc = {
+        let i18n = i18n.clone();
+        move || {
+            let mut shuffle_mode_helper_desc_view: Vec<AnyView> = vec![];
+            shuffle_mode_helper_desc_view.push(
+                view! { {t!(i18n, form.select_shuffle_mode_helper_desc_evenly, <b> = <li />)} }
+                    .into_any(),
+            );
+            shuffle_mode_helper_desc_view.push(
+                view! { {t!(i18n, form.select_shuffle_mode_helper_desc_random, <b> = <li />)} }
+                    .into_any(),
+            );
+            shuffle_mode_helper_desc_view.collect_view()
+        }
+    };
+
     view! {
         {move || {
             view! {
@@ -296,6 +316,41 @@ pub fn TestForm(set_exercise_params: WriteSignal<Option<ExerciseParams>>) -> imp
                                                         .into_any()
                                                 }
                                             }}
+                                        </div>
+                                    </fieldset>
+                                </div>
+                                <div>
+                                    <fieldset>
+                                        <SubtitleWithHelper
+                                            subtitle=t_string!(i18n, form.select_shuffle_mode)
+                                                .to_string()
+                                            helper_title=t_string!(
+                                                i18n, form.select_shuffle_mode_helper
+                                            )
+                                                .to_string()
+                                            helper_desc=move || {
+                                                view! { {shuffle_mode_helper_desc()} }
+                                            }
+                                        />
+                                        <div class=fieldset_class>
+                                            <label class=label_class>
+                                                {t!(i18n, form.shuffle_mode_evenly)}
+                                                <input
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=ShuffleMode::Even.to_string()
+                                                    bind:group=shuffle_mode
+                                                />
+                                            </label>
+                                            <label class=label_class>
+                                                {t!(i18n, form.shuffle_mode_random)}
+                                                <input
+                                                    type="radio"
+                                                    class=radio_class
+                                                    value=ShuffleMode::Random.to_string()
+                                                    bind:group=shuffle_mode
+                                                />
+                                            </label>
                                         </div>
                                     </fieldset>
                                 </div>

@@ -1,10 +1,13 @@
-use std::{collections::HashSet, str::FromStr};
+use std::{
+    collections::{HashMap, HashSet},
+    str::FromStr,
+};
 
 // use leptos::leptos_dom::logging::console_log;
 use rand::Rng;
 use thiserror::Error;
 
-use crate::exercise::{AudioQuality, HanziPair, Tone};
+use crate::exercise::{AudioQuality, HanziPair, ShuffleMode, Tone};
 
 #[derive(Error, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
@@ -30,15 +33,47 @@ pub fn format_toned_syllable_url(syllable: &str, tone: &str) -> String {
     )
 }
 
-pub fn get_random_hanzi_pairs_idxs(nb_elements: u32, hanzi_pairs: &Vec<HanziPair>) -> Vec<usize> {
+pub fn get_random_hanzi_pairs_idxs(
+    nb_elements: u32,
+    hanzi_pairs: &Vec<HanziPair>,
+    shuffle_mode: ShuffleMode,
+) -> Vec<usize> {
     let mut idxs: Vec<usize> = vec![];
     let mut used_idxs: HashSet<usize> = HashSet::new();
     let mut rng = rand::rng();
-    for _ in 0..nb_elements {
-        let random_idx: usize = rng.random_range(0..hanzi_pairs.len());
-        if !used_idxs.contains(&random_idx) {
-            idxs.push(random_idx);
-            used_idxs.insert(random_idx);
+    match shuffle_mode {
+        ShuffleMode::Random => {
+            for _ in 0..nb_elements {
+                let random_idx: usize = rng.random_range(0..hanzi_pairs.len());
+                if !used_idxs.contains(&random_idx) {
+                    idxs.push(random_idx);
+                    used_idxs.insert(random_idx);
+                }
+            }
+        }
+        ShuffleMode::Even => {
+            let mut tone_pairs_map: HashMap<String, Vec<usize>> = HashMap::new();
+            for (i, hanzi_pair) in hanzi_pairs.iter().enumerate() {
+                let tone_pair_key = hanzi_pair.pronounced_tone_pair.0.to_string()
+                    + &hanzi_pair.pronounced_tone_pair.1.to_string();
+                if tone_pairs_map.contains_key(&tone_pair_key) {
+                    tone_pairs_map.get_mut(&tone_pair_key).unwrap().push(i);
+                } else {
+                    tone_pairs_map.insert(tone_pair_key, vec![i]);
+                }
+            }
+            let tone_pairs_keys: Vec<&String> = tone_pairs_map.keys().collect();
+            for _ in 0..nb_elements {
+                let random_tone_pair_key_idx: usize = rng.random_range(0..tone_pairs_keys.len());
+                let random_tone_pair_key = tone_pairs_keys[random_tone_pair_key_idx];
+                let random_idx: usize =
+                    rng.random_range(0..tone_pairs_map[random_tone_pair_key].len());
+                let hanzi_pair_idx = tone_pairs_map[random_tone_pair_key][random_idx];
+                if !used_idxs.contains(&hanzi_pair_idx) {
+                    idxs.push(hanzi_pair_idx);
+                    used_idxs.insert(hanzi_pair_idx);
+                }
+            }
         }
     }
     idxs

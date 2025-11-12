@@ -6,6 +6,8 @@ use thiserror::Error;
 pub enum ExerciseError {
     #[error("Invalid str value for ExerciseDifficulty")]
     ParseExerciseDifficultyError,
+    #[error("Invalid str value for Shuffling mode")]
+    ParseShuffleModeError,
     #[error("Invalid str value for ExerciseType")]
     ParseExerciseTypeError,
     #[error("Invalid str value for InputStyle")]
@@ -177,6 +179,35 @@ impl FromStr for InputStyle {
 
 #[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
 #[allow(dead_code)]
+pub enum ShuffleMode {
+    Random,
+    #[default]
+    Even,
+}
+
+impl ToString for ShuffleMode {
+    fn to_string(&self) -> String {
+        match self {
+            Self::Random => "random".to_string(),
+            Self::Even => "even".to_string(),
+        }
+    }
+}
+
+impl FromStr for ShuffleMode {
+    type Err = ExerciseError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "random" => Ok(Self::Random),
+            "even" => Ok(Self::Even),
+            _ => Err(ExerciseError::ParseShuffleModeError),
+        }
+    }
+}
+
+#[derive(Default, Clone, Copy, PartialEq, Eq, Debug)]
+#[allow(dead_code)]
 pub enum AudioQuality {
     Q18k,
     Q24k,
@@ -214,6 +245,7 @@ pub struct ExerciseParams {
     pub exercise_size: u32,
     pub exercise_type: ExerciseType,
     pub input_style: InputStyle,
+    pub shuffle_mode: ShuffleMode,
     pub timer_on: bool,
     pub audio_quality: AudioQuality,
     pub audio_retries: u32,
@@ -225,6 +257,7 @@ impl Default for ExerciseParams {
             exercise_size: 10,
             exercise_type: ExerciseType::default(),
             input_style: InputStyle::default(),
+            shuffle_mode: ShuffleMode::default(),
             timer_on: false,
             audio_quality: AudioQuality::default(),
             audio_retries: 3,
@@ -239,6 +272,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 exercise_size: 10,
                 exercise_type: ExerciseType::ToneOnly,
                 input_style: InputStyle::Touch,
+                shuffle_mode: ShuffleMode::default(),
                 timer_on: false,
                 audio_quality: AudioQuality::Q64k,
                 audio_retries: 10,
@@ -247,6 +281,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 exercise_size: 15,
                 exercise_type: ExerciseType::ToneOnly,
                 input_style: InputStyle::Keyboard,
+                shuffle_mode: ShuffleMode::default(),
                 timer_on: false,
                 audio_quality: AudioQuality::Q64k,
                 audio_retries: 5,
@@ -255,6 +290,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 exercise_size: 20,
                 exercise_type: ExerciseType::Pinyin,
                 input_style: InputStyle::Keyboard,
+                shuffle_mode: ShuffleMode::default(),
                 timer_on: false,
                 audio_quality: AudioQuality::Q64k,
                 audio_retries: 3,
@@ -263,6 +299,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 exercise_size: 25,
                 exercise_type: ExerciseType::Pinyin,
                 input_style: InputStyle::Keyboard,
+                shuffle_mode: ShuffleMode::default(),
                 timer_on: false,
                 audio_quality: AudioQuality::Q24k,
                 audio_retries: 2,
@@ -271,6 +308,7 @@ impl From<ExerciseDifficulty> for ExerciseParams {
                 exercise_size: 40,
                 exercise_type: ExerciseType::Pinyin,
                 input_style: InputStyle::Keyboard,
+                shuffle_mode: ShuffleMode::default(),
                 timer_on: true,
                 audio_quality: AudioQuality::Q18k,
                 audio_retries: 1,

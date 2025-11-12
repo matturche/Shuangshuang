@@ -146,7 +146,11 @@ pub fn TestSession(
                     resume();
                 }
                 set_random_idxs(
-                    get_random_hanzi_pairs_idxs(params().exercise_size, &hanzi_pairs()),
+                    get_random_hanzi_pairs_idxs(
+                        params().exercise_size,
+                        &hanzi_pairs(),
+                        params().shuffle_mode,
+                    ),
                 );
                 go_to_next_hanzi_pair();
             }
