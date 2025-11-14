@@ -60,17 +60,16 @@ pub fn get_random_hanzi_pairs_idxs(
             }
         }
         ShuffleMode::Even => {
-            let mut tone_pairs_map: HashMap<String, Vec<usize>> = HashMap::new();
+            let mut tone_pairs_map: HashMap<(Tone, Tone), Vec<usize>> = HashMap::new();
             for (i, hanzi_pair) in hanzi_pairs.iter().enumerate() {
-                let tone_pair_key = hanzi_pair.pronounced_tone_pair.0.to_string()
-                    + &hanzi_pair.pronounced_tone_pair.1.to_string();
+                let tone_pair_key = hanzi_pair.pronounced_tone_pair;
                 if tone_pairs_map.contains_key(&tone_pair_key) {
                     tone_pairs_map.get_mut(&tone_pair_key).unwrap().push(i);
                 } else {
                     tone_pairs_map.insert(tone_pair_key, vec![i]);
                 }
             }
-            let tone_pairs_keys: Vec<&String> = tone_pairs_map.keys().collect();
+            let tone_pairs_keys: Vec<&(Tone, Tone)> = tone_pairs_map.keys().collect();
             for _ in 0..nb_elements {
                 let random_tone_pair_key_idx: usize = rng.random_range(0..tone_pairs_keys.len());
                 let random_tone_pair_key = tone_pairs_keys[random_tone_pair_key_idx];
