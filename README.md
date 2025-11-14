@@ -66,3 +66,4 @@ The following hanzi pairs' pinyin were manually altered to match the audio recor
 
 - 好处: from "hao3chu3" to "hao3chu"
 - 因为: from "yin1wei4" to "yin1wei2"
+- 把手: from "ba3shou3" to "ba2shou"
